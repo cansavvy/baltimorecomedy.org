@@ -4,6 +4,8 @@ project:
   render:
     - "*.qmd"
     - "!FORM-SPEC.md"
+  resources:
+    - CNAME
 
 website:
   title: ""
