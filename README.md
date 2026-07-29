@@ -60,6 +60,63 @@ exact Google Form fields to use (the column names have to match what the
 script expects), and the "wiring it up" section at the bottom of that
 file for connecting the published CSV URLs.
 
+### Eventbrite organizer pull
+
+Alongside the Shows form, `scripts/generate_content.py` can also pull
+events directly from public Eventbrite organizer pages (like
+`https://www.eventbrite.com/o/119257059441`) and merge them into the
+same Shows list — sorted together by date with the form submissions, no
+separate section.
+
+**To use it:** add organizer URLs to the `EVENTBRITE_ORGANIZER_URLS` list
+near the top of `scripts/generate_content.py`:
+
+```python
+EVENTBRITE_ORGANIZER_URLS = [
+    "https://www.eventbrite.com/o/119257059441",
+    "https://www.eventbrite.com/o/some-other-organizer-12345",
+]
+```
+
+That's it — no CSV/publish-to-web step needed for this one, since it's
+pulling from Eventbrite directly rather than a Google Sheet. It runs on
+the same daily GitHub Actions schedule as everything else.
+
+**⚠️ Important — read before relying on this:**
+
+- Eventbrite doesn't have a public, official API for reading *other*
+  organizers' events — their real API only lets an organizer read their
+  own events with their own private token. This script instead looks
+  for a large block of data Eventbrite's organizer pages typically embed
+  for the page to render itself (usually inside a `__NEXT_DATA__` tag,
+  with a JSON-LD fallback), and heuristically pulls out anything that
+  looks like an event. It is **not an official or guaranteed method** —
+  if Eventbrite changes their page structure, this can silently start
+  returning nothing.
+- This may also run up against Eventbrite's Terms of Service depending
+  on volume/use — worth a look if you're relying on this heavily rather
+  than occasionally.
+- **I could not test the live fetch against real Eventbrite servers**
+  while building this — my environment's network access is restricted
+  and couldn't reach eventbrite.com at all, so everything past "does the
+  HTML come back" is unverified on my end. The merging, date-parsing,
+  and JSON-searching logic is unit-tested with fake data and works
+  correctly; whether it finds real events in real Eventbrite pages is
+  the part that needs checking on your end.
+
+**To check whether it's working**, run this from the project folder
+(needs Python 3, no extra installs):
+
+```
+python3 scripts/generate_content.py --debug-eventbrite "https://www.eventbrite.com/o/119257059441"
+```
+
+This fetches that one organizer page and prints exactly what it found
+(or a specific reason it found nothing) without touching any site files
+— safe to run any time to sanity-check a URL before adding it to the
+list above. If it comes back empty and you want help debugging it,
+share that output.
+
 ### Open Mics data source
 
 The Open Mics page's main table works the same way, but pulls from a

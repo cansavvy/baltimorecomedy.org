@@ -34,6 +34,8 @@ publicly once "Publish to web" is turned on -- no API key or auth needed.
 
 import csv
 import io
+import json
+import re
 import sys
 import urllib.request
 from datetime import datetime, date
@@ -46,6 +48,16 @@ from datetime import datetime, date
 SHOWS_CSV_URL = None        # "Add a Show" response sheet, published as CSV
 COMEDIANS_CSV_URL = None    # "Add a Comedian" response sheet, published as CSV
 OPENMICS_CSV_URL = None     # Open mic listing sheet, published as CSV
+
+# Eventbrite organizer pages to pull events from automatically, e.g.:
+#   "https://www.eventbrite.com/o/119257059441"
+# Add as many as you like. See the big warning in fetch_eventbrite_organizer_events()
+# below about how reliable this is (short version: best-effort, not an
+# official API, may need retuning if Eventbrite changes their site).
+EVENTBRITE_ORGANIZER_URLS: list[str] = [
+    "https://www.eventbrite.com/o/5340822879",
+    "https://www.eventbrite.com/o/32042122709",
+]
 
 OUTPUT_DIR = "_generated"
 
@@ -92,15 +104,169 @@ def parse_date_safe(value: str):
 
 # --------------------------- SHOWS ---------------------------
 
-def build_shows_content(rows: list[dict]) -> str:
-    # Rows flagged "Is this an Open Mic?" = Yes go to the Open Mics page
-    # instead (see build_submitted_openmics_content below), not here.
-    approved = [r for r in rows if is_approved(r) and not is_open_mic(r)]
+def normalize_form_rows(rows: list[dict]) -> list[dict]:
+    """Turn approved Shows-form rows into the common normalized shape
+    used by build_shows_content(). Rows flagged "Is this an Open Mic?" =
+    Yes are excluded here — they go to the Open Mics page instead (see
+    build_submitted_openmics_content)."""
+    out = []
+    for r in rows:
+        if not is_approved(r) or is_open_mic(r):
+            continue
+        recurring = r.get(
+            "Is this a recurring show? If so, how frequently? Weekly? Monthly?", ""
+        ).strip()
+        tag = recurring if recurring and recurring.lower() not in ("no", "n/a", "none", "") else ""
+        out.append({
+            "name": r.get("Show name", "").strip() or "Untitled Show",
+            "venue": r.get("Venue", "").strip(),
+            "date": parse_date_safe(r.get("Date", "")),
+            "link": r.get("Link to where folks can buy tickets", "").strip() or "#",
+            "tag": tag,
+            "source": "form",
+        })
+    return out
 
-    dated = []
-    for r in approved:
-        d = parse_date_safe(r.get("Date", ""))
-        dated.append((d, r))
+
+def fetch_eventbrite_organizer_events(organizer_url: str) -> list[dict]:
+    """
+    Best-effort pull of upcoming events from a public Eventbrite organizer
+    page, e.g. https://www.eventbrite.com/o/119257059441
+
+    IMPORTANT — READ BEFORE RELYING ON THIS:
+    Eventbrite's official API only exposes an organizer's OWN events to
+    THAT organizer's own OAuth token — there is no supported public API
+    for reading arbitrary other organizers' events. Eventbrite's public
+    organizer profile pages are also JavaScript-rendered (a Next.js app),
+    so the event list isn't necessarily present in the plain HTML the way
+    it would be on a simple server-rendered page.
+
+    This function works by requesting the page's HTML and searching for
+    a large embedded JSON blob Next.js apps typically ship (commonly in a
+    <script id="__NEXT_DATA__"> tag) that the page uses to hydrate itself
+    client-side, then heuristically searching that JSON for anything that
+    looks like an event (an object with a "url" containing "/e/" — every
+    Eventbrite event page follows that pattern — alongside a name and a
+    date). This is inherently fragile: if Eventbrite changes their page
+    structure, this may return nothing, and needs re-tuning. It also may
+    be against Eventbrite's Terms of Service depending on how it's used —
+    worth checking before relying on this for anything beyond casual,
+    low-volume personal use.
+
+    If this stops finding events, the most reliable fallback is to ask
+    each organizer directly for an RSS/iCal export link if they have one
+    enabled, or their own private API token if they're willing to share
+    it — both are officially supported and far more stable than scraping.
+    """
+    req = urllib.request.Request(
+        organizer_url,
+        headers={"User-Agent": "Mozilla/5.0 (compatible; BaltimoreComedyBot/1.0)"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=20) as response:
+            html = response.read().decode("utf-8", errors="ignore")
+    except Exception as e:
+        print(f"  [eventbrite] failed to fetch {organizer_url}: {e}", file=sys.stderr)
+        return []
+
+    blob = None
+    match = re.search(
+        r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, re.DOTALL
+    )
+    if match:
+        try:
+            blob = json.loads(match.group(1))
+        except json.JSONDecodeError:
+            blob = None
+
+    if blob is None:
+        # Fall back to any schema.org JSON-LD blocks, in case the page
+        # includes those instead of/alongside __NEXT_DATA__.
+        ld_blocks = re.findall(
+            r'<script type="application/ld\+json"[^>]*>(.*?)</script>', html, re.DOTALL
+        )
+        parsed = []
+        for block in ld_blocks:
+            try:
+                parsed.append(json.loads(block))
+            except json.JSONDecodeError:
+                continue
+        blob = parsed if parsed else None
+
+    if blob is None:
+        print(
+            f"  [eventbrite] no embedded event data found on {organizer_url} "
+            "— page structure may have changed, or events are loaded via a "
+            "call this script doesn't replicate.",
+            file=sys.stderr,
+        )
+        return []
+
+    found = {}  # keyed by url, to dedupe
+
+    def walk(node):
+        if isinstance(node, dict):
+            url = node.get("url") or node.get("eventUrl") or node.get("event_url")
+            name = node.get("name") or node.get("title")
+            if isinstance(url, str) and "/e/" in url and name:
+                if url not in found:
+                    start_raw = (
+                        node.get("start_date")
+                        or node.get("startDate")
+                        or (node.get("start") or {}).get("utc")
+                        if isinstance(node.get("start"), dict)
+                        else node.get("start")
+                    )
+                    venue = ""
+                    v = node.get("venue") or node.get("primary_venue") or node.get("location")
+                    if isinstance(v, dict):
+                        venue = v.get("name", "") or ""
+                    elif isinstance(v, str):
+                        venue = v
+                    found[url] = {
+                        "name": str(name).strip(),
+                        "venue": str(venue).strip(),
+                        "date": parse_eventbrite_date(start_raw),
+                        "link": url,
+                        "tag": "",
+                        "source": "eventbrite",
+                    }
+            for v in node.values():
+                walk(v)
+        elif isinstance(node, list):
+            for item in node:
+                walk(item)
+
+    walk(blob)
+
+    events = list(found.values())
+    print(f"  [eventbrite] {organizer_url} -> {len(events)} event(s) found")
+    return events
+
+
+def parse_eventbrite_date(value):
+    if not value or not isinstance(value, str):
+        return None
+    v = value.strip().rstrip("Z")
+    for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(v[: len(fmt) + 8], fmt).date()
+        except ValueError:
+            continue
+    return parse_date_safe(value)
+
+
+def fetch_all_eventbrite_events(organizer_urls: list[str]) -> list[dict]:
+    all_events = []
+    for url in organizer_urls:
+        all_events.extend(fetch_eventbrite_organizer_events(url))
+    return all_events
+
+
+def build_shows_content(events: list[dict]) -> str:
+    """events: list of normalized dicts with name/venue/date/link/tag/source
+    (see normalize_form_rows and fetch_eventbrite_organizer_events)."""
+    dated = [(e.get("date"), e) for e in events]
     # Undated rows sort last, but still get included
     dated.sort(key=lambda pair: (pair[0] is None, pair[0] or date.max))
 
@@ -115,15 +281,15 @@ def build_shows_content(rows: list[dict]) -> str:
     lines = [
         "<!--",
         "AUTO-GENERATED FILE — DO NOT HAND-EDIT",
-        "Regenerated by scripts/generate_content.py. Edit the source sheet",
-        "and mark rows Approved instead.",
+        "Regenerated by scripts/generate_content.py from approved Shows-form",
+        "rows and configured Eventbrite organizer pages.",
         f"Last generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
         "-->",
         "",
     ]
 
     current_month = None
-    for d, r in dated:
+    for d, e in dated:
         month_label = d.strftime("%B %Y") if d else "Date TBD"
         if month_label != current_month:
             if current_month is not None:
@@ -132,20 +298,18 @@ def build_shows_content(rows: list[dict]) -> str:
             lines.append('<ul class="show-list">\n')
             current_month = month_label
 
-        name = escape_html(r.get("Show name", "Untitled Show"))
-        venue = escape_html(r.get("Venue", ""))
-        link = r.get("Link to where folks can buy tickets", "").strip() or "#"
+        name = escape_html(e.get("name", "Untitled Show"))
+        venue = escape_html(e.get("venue", ""))
+        link = e.get("link") or "#"
         day_label = d.strftime("%a, %b %-d") if d else "TBD"
         label = f"{name} — {venue}" if venue else name
 
-        recurring = r.get(
-            "Is this a recurring show? If so, how frequently? Weekly? Monthly?", ""
-        ).strip()
-        recurring_tag = f" <em>({recurring})</em>" if recurring and recurring.lower() not in ("no", "n/a", "none", "") else ""
+        tag = e.get("tag", "")
+        tag_html = f" <em>({escape_html(tag)})</em>" if tag else ""
 
         lines.append('<li class="show-item">')
         lines.append(
-            f'  <span class="show-name"><a href="{escape_html(link)}" target="_blank">{label}</a>{recurring_tag}</span>'
+            f'  <span class="show-name"><a href="{escape_html(link)}" target="_blank">{label}</a>{tag_html}</span>'
         )
         lines.append(f'  <span class="show-date">{day_label}</span>')
         lines.append("</li>\n")
@@ -350,10 +514,17 @@ def write_file(path: str, content: str):
 def main():
     any_run = False
 
-    if SHOWS_CSV_URL:
-        rows = fetch_csv_rows(SHOWS_CSV_URL)
-        write_file(f"{OUTPUT_DIR}/shows-content.qmd", build_shows_content(rows))
-        write_file(f"{OUTPUT_DIR}/openmics-submitted.qmd", build_submitted_openmics_content(rows))
+    if SHOWS_CSV_URL or EVENTBRITE_ORGANIZER_URLS:
+        form_rows = fetch_csv_rows(SHOWS_CSV_URL) if SHOWS_CSV_URL else []
+        combined_events = normalize_form_rows(form_rows) + fetch_all_eventbrite_events(
+            EVENTBRITE_ORGANIZER_URLS
+        )
+        write_file(f"{OUTPUT_DIR}/shows-content.qmd", build_shows_content(combined_events))
+        if SHOWS_CSV_URL:
+            write_file(
+                f"{OUTPUT_DIR}/openmics-submitted.qmd",
+                build_submitted_openmics_content(form_rows),
+            )
         any_run = True
 
     if COMEDIANS_CSV_URL:
@@ -368,12 +539,33 @@ def main():
 
     if not any_run:
         print(
-            "No CSV URLs configured yet — nothing to do. "
-            "Set SHOWS_CSV_URL / COMEDIANS_CSV_URL / OPENMICS_CSV_URL "
-            "at the top of scripts/generate_content.py.",
+            "Nothing configured yet — nothing to do. Set SHOWS_CSV_URL / "
+            "COMEDIANS_CSV_URL / OPENMICS_CSV_URL and/or "
+            "EVENTBRITE_ORGANIZER_URLS at the top of scripts/generate_content.py.",
             file=sys.stderr,
         )
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1] == "--debug-eventbrite":
+        if len(sys.argv) < 3:
+            print("Usage: python3 generate_content.py --debug-eventbrite <organizer_url>", file=sys.stderr)
+            sys.exit(1)
+        test_url = sys.argv[2]
+        print(f"Fetching {test_url} ...")
+        events = fetch_eventbrite_organizer_events(test_url)
+        if not events:
+            print(
+                "\nNo events extracted. This means either:\n"
+                "  1. Eventbrite blocked the request (bot detection), or\n"
+                "  2. The page's embedded data doesn't match the patterns\n"
+                "     this script looks for (__NEXT_DATA__ / JSON-LD), or\n"
+                "  3. This organizer genuinely has no upcoming events listed.\n"
+                "Share this output if you want help adjusting the script."
+            )
+        else:
+            print(f"\nExtracted {len(events)} event(s):\n")
+            for e in events:
+                print(f"  - {e['name']!r} | venue={e['venue']!r} | date={e['date']} | {e['link']}")
+    else:
+        main()

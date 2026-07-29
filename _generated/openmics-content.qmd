@@ -7,6 +7,10 @@ scripts/generate_content.py for live, automatic updates.
 Last verified: Jul 29, 2026
 -->
 
+::: {.aside-note}
+Corrections or additions to this list go through the original maintainer's Instagram DMs: **mo_noor_lol**. Confirm a mic is happening before you drive out — hosts and schedules do change.
+:::
+
 ### Mondays
 
 <div class="openmic-table-wrap">
