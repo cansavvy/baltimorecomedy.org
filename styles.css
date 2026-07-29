@@ -1,0 +1,262 @@
+/* ===== Layout helpers ===== */
+
+.hero {
+  text-align: center;
+  padding: 3.5rem 1rem 2.5rem 1rem;
+  border-bottom: 1px solid rgba(91, 127, 166, 0.35);
+  margin-bottom: 2.5rem;
+}
+
+.hero h1 {
+  font-size: 3rem;
+  margin-bottom: 0.25rem;
+}
+
+.hero .tagline {
+  font-size: 1.35rem;
+  font-style: italic;
+  color: #dbe6f5;
+  opacity: 0.9;
+  max-width: 640px;
+  margin: 0.75rem auto 0 auto;
+}
+
+.gold-rule {
+  width: 120px;
+  height: 2px;
+  margin: 1.5rem auto;
+  background: linear-gradient(90deg, transparent, #6fb7ff, transparent);
+}
+
+/* ===== Buttons ===== */
+
+.cta-row {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1.75rem;
+}
+
+.cta-button {
+  display: inline-block;
+  padding: 0.65rem 1.6rem;
+  border: 1px solid #6fb7ff;
+  color: #6fb7ff !important;
+  border-radius: 2px;
+  text-decoration: none !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.cta-button:hover {
+  background: #6fb7ff;
+  color: #05070d !important;
+}
+
+.cta-button.filled {
+  background: #1c3f6e;
+  border-color: #1c3f6e;
+  color: #dbe6f5 !important;
+}
+
+.cta-button.filled:hover {
+  background: #2a5c9e;
+  border-color: #2a5c9e;
+  color: #fff !important;
+}
+
+/* ===== Comedian Cards ===== */
+
+.comedian-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1.75rem;
+  margin: 2rem 0;
+}
+
+.comedian-card {
+  background: linear-gradient(180deg, rgba(28,63,110,0.12), rgba(5,7,13,0.4));
+  border: 1px solid rgba(91, 127, 166, 0.35);
+  border-radius: 4px;
+  padding: 1.25rem;
+  text-align: center;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.comedian-card:hover {
+  transform: translateY(-4px);
+  border-color: #6fb7ff;
+}
+
+.comedian-photo {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #6fb7ff;
+  margin: 0 auto 1rem auto;
+  display: block;
+  background: #0a0f1a;
+}
+
+.comedian-name {
+  font-family: "Source Serif 4", serif;
+  color: #6fb7ff;
+  font-size: 1.3rem;
+  margin: 0.25rem 0 0.15rem 0;
+}
+
+.comedian-tag {
+  color: #5b7fa6;
+  font-style: italic;
+  font-size: 0.95rem;
+  margin-bottom: 0.6rem;
+}
+
+.comedian-bio {
+  font-size: 0.98rem;
+  color: #dbe6f5;
+  opacity: 0.9;
+  margin-bottom: 0.85rem;
+}
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: 0.85rem;
+  font-size: 1.15rem;
+}
+
+.social-links a {
+  color: #dbe6f5 !important;
+  opacity: 0.8;
+  text-decoration: none !important;
+}
+
+.social-links a:hover {
+  color: #6fb7ff !important;
+  opacity: 1;
+}
+
+/* ===== Shows list ===== */
+
+.show-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+}
+
+.show-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.95rem 0.25rem;
+  border-bottom: 1px dashed rgba(91, 127, 166, 0.35);
+  flex-wrap: wrap;
+}
+
+.show-item .show-name a {
+  font-family: "Source Serif 4", serif;
+  font-size: 1.2rem;
+  color: #dbe6f5 !important;
+  text-decoration: none !important;
+  border-bottom: 1px solid rgba(111,183,255,0.5);
+}
+
+.show-item .show-name a:hover {
+  color: #6fb7ff !important;
+}
+
+.show-item .show-date {
+  color: #5b7fa6;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.show-month-heading {
+  color: #1c3f6e;
+  background: none;
+  -webkit-text-stroke: 0.5px #6fb7ff;
+  margin-top: 2.5rem;
+}
+
+/* ===== Callout / funny asides ===== */
+
+.aside-note {
+  border-left: 3px solid #1c3f6e;
+  padding: 0.6rem 1rem;
+  color: #5b7fa6;
+  font-style: italic;
+  font-size: 0.95rem;
+  margin: 1.5rem 0;
+}
+
+/* ===== Open Mic table ===== */
+
+.openmic-table-wrap {
+  overflow-x: auto;
+  margin: 1.5rem 0 2.5rem 0;
+  border: 1px solid rgba(91, 127, 166, 0.35);
+  border-radius: 4px;
+}
+
+table.openmic-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+table.openmic-table caption {
+  caption-side: top;
+  color: #5b7fa6;
+  font-style: italic;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+table.openmic-table th {
+  background: rgba(28, 63, 110, 0.25);
+  color: #6fb7ff;
+  font-family: "Source Serif 4", serif;
+  font-weight: 600;
+  text-align: left;
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid rgba(91, 127, 166, 0.4);
+  white-space: nowrap;
+}
+
+table.openmic-table td {
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px dashed rgba(91, 127, 166, 0.25);
+  color: #dbe6f5;
+  vertical-align: top;
+}
+
+table.openmic-table tr:hover td {
+  background: rgba(111, 183, 255, 0.06);
+}
+
+table.openmic-table td.last-verified {
+  color: #5b7fa6;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+table.openmic-table a {
+  color: #6fb7ff;
+}
+
+/* ===== Submit page ===== */
+
+.form-embed-wrap {
+  border: 1px solid rgba(91,127,166,0.4);
+  border-radius: 4px;
+  padding: 1.5rem;
+  background: rgba(28,63,110,0.08);
+  text-align: center;
+  margin: 2rem 0;
+}
