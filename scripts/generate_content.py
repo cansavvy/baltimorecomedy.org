@@ -46,9 +46,9 @@ from datetime import datetime, date
 # and sheets exist. Leave a value as None to skip that section (it will
 # be left untouched / shown as "pending" on the site).
 
-SHOWS_CSV_URL = None        # "Add a Show" response sheet, published as CSV
-COMEDIANS_CSV_URL = None    # "Add a Comedian" response sheet, published as CSV
-OPENMICS_CSV_URL = None     # Open mic listing sheet, published as CSV
+SHOWS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDB_QGh0L4oqe0jUFl-jvxoObctjaM2cwD4dsqtPvFJ2HBHEPggAIXCe297jxK0Dr7jvUMslWehRCL/pub?output=csv"  # "Add a Show" response sheet, published as CSV
+COMEDIANS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTXiMDWyDOFeYXxdOX6KVpzMOu3yeszvBt0oQ7HlupDRuKJnWF8apg7wpYh-sPUjVBkeIcxUFBp2u4r/pub?output=csv"  # "Add a Comedian" response sheet, published as CSV
+OPENMICS_CSV_URL = None  # Open mic listing sheet, published as CSV
 
 # Eventbrite organizer pages to pull events from automatically, e.g.:
 #   "https://www.eventbrite.com/o/119257059441"
@@ -71,7 +71,9 @@ def fetch_csv_rows(url: str) -> list[dict]:
     with urllib.request.urlopen(url, timeout=30) as response:
         raw = response.read().decode("utf-8-sig")
     reader = csv.DictReader(io.StringIO(raw))
-    return [{(k or "").strip(): (v or "").strip() for k, v in row.items()} for row in reader]
+    return [
+        {(k or "").strip(): (v or "").strip() for k, v in row.items()} for row in reader
+    ]
 
 
 def is_approved(row: dict) -> bool:
@@ -106,6 +108,7 @@ def parse_date_safe(value: str):
 
 # --------------------------- SHOWS ---------------------------
 
+
 def normalize_form_rows(rows: list[dict]) -> list[dict]:
     """Turn approved Shows-form rows into the common normalized shape
     used by build_shows_content(). Rows flagged "Is this an Open Mic?" =
@@ -118,15 +121,21 @@ def normalize_form_rows(rows: list[dict]) -> list[dict]:
         recurring = r.get(
             "Is this a recurring show? If so, how frequently? Weekly? Monthly?", ""
         ).strip()
-        tag = recurring if recurring and recurring.lower() not in ("no", "n/a", "none", "") else ""
-        out.append({
-            "name": r.get("Show name", "").strip() or "Untitled Show",
-            "venue": r.get("Venue", "").strip(),
-            "date": parse_date_safe(r.get("Date", "")),
-            "link": r.get("Link to where folks can buy tickets", "").strip() or "#",
-            "tag": tag,
-            "source": "form",
-        })
+        tag = (
+            recurring
+            if recurring and recurring.lower() not in ("no", "n/a", "none", "")
+            else ""
+        )
+        out.append(
+            {
+                "name": r.get("Show name", "").strip() or "Untitled Show",
+                "venue": r.get("Venue", "").strip(),
+                "date": parse_date_safe(r.get("Date", "")),
+                "link": r.get("Link to where folks can buy tickets", "").strip() or "#",
+                "tag": tag,
+                "source": "form",
+            }
+        )
     return out
 
 
@@ -144,11 +153,13 @@ def extract_start_raw(node: dict):
     ]
     start_node = node.get("start")
     if isinstance(start_node, dict):
-        candidates.extend([
-            start_node.get("utc"),
-            start_node.get("local"),
-            start_node.get("date"),
-        ])
+        candidates.extend(
+            [
+                start_node.get("utc"),
+                start_node.get("local"),
+                start_node.get("date"),
+            ]
+        )
     elif isinstance(start_node, str):
         candidates.append(start_node)
     for c in candidates:
@@ -242,7 +253,11 @@ def fetch_eventbrite_organizer_events(organizer_url: str) -> list[dict]:
                 if url not in found:
                     start_raw = extract_start_raw(node)
                     venue = ""
-                    v = node.get("venue") or node.get("primary_venue") or node.get("location")
+                    v = (
+                        node.get("venue")
+                        or node.get("primary_venue")
+                        or node.get("location")
+                    )
                     if isinstance(v, dict):
                         venue = v.get("name", "") or ""
                     elif isinstance(v, str):
@@ -272,7 +287,8 @@ def fetch_eventbrite_organizer_events(organizer_url: str) -> list[dict]:
         print("\n  [eventbrite debug] raw keys on first matched event node:")
         print(" ", sorted(raw_samples[0].keys()))
         date_like = {
-            k: v for k, v in raw_samples[0].items()
+            k: v
+            for k, v in raw_samples[0].items()
             if any(w in k.lower() for w in ("date", "start", "time"))
         }
         print("  [eventbrite debug] date-ish fields on that node:", date_like)
@@ -390,7 +406,9 @@ def build_comedians_content(rows: list[dict]) -> str:
 
     for r in approved:
         name = escape_html(r.get("Stage Name", "").strip() or "Unnamed")
-        tag = escape_html(r.get("Comedic Style (short sentence descriptor)", "").strip())
+        tag = escape_html(
+            r.get("Comedic Style (short sentence descriptor)", "").strip()
+        )
         bio = ""  # this form doesn't currently collect a separate bio field
         # Headshots submitted via Google Form file-upload land in Candace's
         # Drive, not as a public image URL, so we fall back to the
@@ -399,7 +417,9 @@ def build_comedians_content(rows: list[dict]) -> str:
         photo = r.get("Photo Filename", "").strip() or "images/placeholder-headshot.svg"
 
         lines.append('<div class="comedian-card">')
-        lines.append(f'  <img class="comedian-photo" src="{escape_html(photo)}" alt="{name}">')
+        lines.append(
+            f'  <img class="comedian-photo" src="{escape_html(photo)}" alt="{name}">'
+        )
         lines.append(f'  <div class="comedian-name">{name}</div>')
         if tag:
             lines.append(f'  <div class="comedian-tag">{tag}</div>')
@@ -409,7 +429,9 @@ def build_comedians_content(rows: list[dict]) -> str:
         for field, emoji, label in SOCIAL_FIELDS:
             url = r.get(field, "").strip()
             if url:
-                lines.append(f'    <a href="{escape_html(url)}" target="_blank" title="{label}">{emoji}</a>')
+                lines.append(
+                    f'    <a href="{escape_html(url)}" target="_blank" title="{label}">{emoji}</a>'
+                )
         lines.append("  </div>")
         lines.append("</div>\n")
 
@@ -418,6 +440,7 @@ def build_comedians_content(rows: list[dict]) -> str:
 
 
 # --------------------------- OPEN MICS ---------------------------
+
 
 def build_submitted_openmics_content(shows_rows: list[dict]) -> str:
     """
@@ -428,9 +451,7 @@ def build_submitted_openmics_content(shows_rows: list[dict]) -> str:
     submitted = [r for r in shows_rows if is_approved(r) and is_open_mic(r)]
 
     if not submitted:
-        return (
-            "<!-- no community-submitted open mics yet -->\n"
-        )
+        return "<!-- no community-submitted open mics yet -->\n"
 
     lines = [
         "<!--",
@@ -456,9 +477,15 @@ def build_submitted_openmics_content(shows_rows: list[dict]) -> str:
         recurring = r.get(
             "Is this a recurring show? If so, how frequently? Weekly? Monthly?", ""
         ).strip()
-        when_label = f"{recurring} ({when})" if recurring and when else (recurring or when or "—")
+        when_label = (
+            f"{recurring} ({when})"
+            if recurring and when
+            else (recurring or when or "—")
+        )
         link = r.get("Link to where folks can buy tickets", "").strip()
-        contact = f'<a href="{escape_html(link)}" target="_blank">link</a>' if link else "—"
+        contact = (
+            f'<a href="{escape_html(link)}" target="_blank">link</a>' if link else "—"
+        )
         submitted_date = date.today().strftime("%Y-%m-%d")
 
         lines.append(
@@ -522,7 +549,11 @@ def build_openmics_content(rows: list[dict]) -> str:
         last_verified = pick(r, "Last Verified", "Last Checked") or today_str
 
         link = pick(r, "Link", "Website", "Instagram")
-        name_cell = f'<a href="{escape_html(link)}" target="_blank">{name}</a>' if link else name
+        name_cell = (
+            f'<a href="{escape_html(link)}" target="_blank">{name}</a>'
+            if link
+            else name
+        )
 
         lines.append(
             "<tr>"
@@ -541,6 +572,7 @@ def build_openmics_content(rows: list[dict]) -> str:
 
 # --------------------------- MAIN ---------------------------
 
+
 def write_file(path: str, content: str):
     with open(path, "w", encoding="utf-8") as f:
         f.write(content.rstrip() + "\n")
@@ -555,7 +587,9 @@ def main():
         combined_events = normalize_form_rows(form_rows) + fetch_all_eventbrite_events(
             EVENTBRITE_ORGANIZER_URLS
         )
-        write_file(f"{OUTPUT_DIR}/shows-content.qmd", build_shows_content(combined_events))
+        write_file(
+            f"{OUTPUT_DIR}/shows-content.qmd", build_shows_content(combined_events)
+        )
         if SHOWS_CSV_URL:
             write_file(
                 f"{OUTPUT_DIR}/openmics-submitted.qmd",
@@ -585,7 +619,10 @@ def main():
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--debug-eventbrite":
         if len(sys.argv) < 3:
-            print("Usage: python3 generate_content.py --debug-eventbrite <organizer_url>", file=sys.stderr)
+            print(
+                "Usage: python3 generate_content.py --debug-eventbrite <organizer_url>",
+                file=sys.stderr,
+            )
             sys.exit(1)
         test_url = sys.argv[2]
         print(f"Fetching {test_url} ...")
@@ -602,6 +639,8 @@ if __name__ == "__main__":
         else:
             print(f"\nExtracted {len(events)} event(s):\n")
             for e in events:
-                print(f"  - {e['name']!r} | venue={e['venue']!r} | date={e['date']} | {e['link']}")
+                print(
+                    f"  - {e['name']!r} | venue={e['venue']!r} | date={e['date']} | {e['link']}"
+                )
     else:
         main()
