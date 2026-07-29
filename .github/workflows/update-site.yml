@@ -13,16 +13,9 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
-
-# Only one deployment at a time; newer runs cancel in-progress ones.
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -36,32 +29,19 @@ jobs:
       - name: Pull approved rows and regenerate content
         run: python3 scripts/generate_content.py
 
-      - name: Commit regenerated content (if anything changed)
-        run: |
-          git config user.name "baltimore-comedy-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add _generated
-          git diff --cached --quiet || git commit -m "Auto-update content from sheets"
-          git push || true
-
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Render site
+      - name: Render site into docs/
         run: quarto render
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./docs
+      - name: Tell GitHub Pages to skip Jekyll processing
+        run: touch docs/.nojekyll
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Commit regenerated content and rendered site
+        run: |
+          git config user.name "baltimore-comedy-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add _generated docs
+          git diff --cached --quiet || git commit -m "Auto-update site content [skip ci]"
+          git push
