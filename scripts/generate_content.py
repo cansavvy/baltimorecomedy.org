@@ -46,9 +46,9 @@ from datetime import datetime, date
 # and sheets exist. Leave a value as None to skip that section (it will
 # be left untouched / shown as "pending" on the site).
 
-SHOWS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDB_QGh0L4oqe0jUFl-jvxoObctjaM2cwD4dsqtPvFJ2HBHEPggAIXCe297jxK0Dr7jvUMslWehRCL/pub?output=csv"  # "Add a Show" response sheet, published as CSV
-COMEDIANS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTXiMDWyDOFeYXxdOX6KVpzMOu3yeszvBt0oQ7HlupDRuKJnWF8apg7wpYh-sPUjVBkeIcxUFBp2u4r/pub?output=csv"  # "Add a Comedian" response sheet, published as CSV
-OPENMICS_CSV_URL = None  # Open mic listing sheet, published as CSV
+SHOWS_CSV_URL = None        # "Add a Show" response sheet, published as CSV
+COMEDIANS_CSV_URL = None    # "Add a Comedian" response sheet, published as CSV
+OPENMICS_CSV_URL = None     # Open mic listing sheet, published as CSV
 
 # Eventbrite organizer pages to pull events from automatically, e.g.:
 #   "https://www.eventbrite.com/o/119257059441"
@@ -357,11 +357,11 @@ def build_shows_content(events: list[dict]) -> str:
 # --------------------------- COMEDIANS ---------------------------
 
 SOCIAL_FIELDS = [
-    ("Instagram URL", "📷", "Instagram"),
-    ("TikTok URL", "🎵", "TikTok"),
-    ("Youtube URL", "▶️", "YouTube"),
-    ("Facebook URL", "📘", "Facebook"),
-    ("Website URL", "🌐", "Website"),
+    ("Instagram URL", "Instagram"),
+    ("TikTok URL", "TikTok"),
+    ("Youtube URL", "YouTube"),
+    ("Facebook URL", "Facebook"),
+    ("Website URL", "Website"),
 ]
 
 
@@ -456,10 +456,10 @@ def build_comedians_content(rows: list[dict]) -> str:
         if bio:
             lines.append(f'<p class="comedian-bio">{bio}</p>')
         lines.append('<div class="social-links">')
-        for field, emoji, label in SOCIAL_FIELDS:
+        for field, label in SOCIAL_FIELDS:
             url = r.get(field, "").strip()
             if url:
-                lines.append(f'<a href="{escape_html(url)}" target="_blank" title="{label}">{emoji}</a>')
+                lines.append(f'<a href="{escape_html(url)}" target="_blank">{label}</a>')
         lines.append("</div>")
         lines.append("</div>\n")
 

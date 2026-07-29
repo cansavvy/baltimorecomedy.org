@@ -10,10 +10,6 @@ this file — use the form, or edit the source sheet and mark the row
 Approved. See README.md -> "How updates work."
 -->
 
-::: {.aside-note}
-Click a show name for tickets or event details. Dates are Eastern Time.
-:::
-
 {{< include _generated/shows-content.qmd >}}
 
 Are you a showrunner with an eventbrite? Send your eventbrite link to <a href="mailto:candyscomedybaltimore@gmail.com">candyscomedybaltimore@gmail.com</a> and this website will automatically show any events underneath your profile. 

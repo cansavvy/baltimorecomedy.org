@@ -4,13 +4,9 @@ page-layout: full
 ---
 
 ::: {.hero}
-# Baltimore Comedy<span style="color:#ede3cc;">.org</span>
+# Baltimore is Funny<span style="color:#ede3cc;">.org</span>
 
 <div class="gold-rule"></div>
-
-<p class="tagline">
-Baltimore is funny.  
-</p>
 
 <div class="cta-row">
   <a class="cta-button filled" href="shows.qmd">See Upcoming Shows</a>
