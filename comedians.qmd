@@ -13,5 +13,5 @@ the row Approved. See README.md -> "How updates work."
 {{< include _generated/comedians-content.qmd >}}
 
 <div style="text-align:center; margin-top:1rem;">
-<a class="cta-button" href="submit.qmd">Not listed yet? Add yourself →</a>
+<a class="cta-button" href="https://docs.google.com/forms/d/e/1FAIpQLSeSXTsm0ZPKhsOazYwbnB2wswHIKQYlUbTOpoNsyQGEZiIvXA/viewform">Not listed yet? Add yourself →</a>
 </div>

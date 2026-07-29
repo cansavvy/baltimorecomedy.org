@@ -9,8 +9,7 @@ page-layout: full
 <div class="gold-rule"></div>
 
 <p class="tagline">
-Baltimore has an enormous amount of comedic talent. 
-Here's how you find them. 
+Baltimore is funny.  
 </p>
 
 <div class="cta-row">
