@@ -2,23 +2,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.10.18">
+<meta name="generator" content="quarto-1.7.34">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
 <title>Baltimore Comedy</title>
 <style>
-/* Default styles provided by pandoc.
-** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
-*/
+code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: 1.5em;}
-div.column{flex: auto;}
-@media screen {
-div.columns{gap: min(4vw, 1.5em);}
-div.column{overflow-x: auto;}
-}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
@@ -42,10 +36,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-ea076cd80afe4d4364ccfc8497691f2a.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-a1fde4978ccc38111d625ce9c65bcdd9.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-645a5ecc2c8c4db2c3400a8c72c982b4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-766f762516ab81a415c00b4a3e53f0cc.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -86,8 +80,7 @@ ul.task-list li input[type="checkbox"] {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a href="./index.html" class="navbar-brand navbar-brand-logo">
-    <img src="./images/logo-mark.svg" alt="" class="navbar-logo light-content">
-    <img src="./images/logo-mark.svg" alt="" class="navbar-logo dark-content">
+    <img src="./images/logo-mark.svg" alt="" class="navbar-logo">
     </a>
     <a class="navbar-brand" href="./index.html">
     <span class="navbar-title">BALTIMORE COMEDY</span>
@@ -143,12 +136,15 @@ ul.task-list li input[type="checkbox"] {
 
 </div>
 <p class="tagline">
-Baltimore has an enormous amount of comedic talent. Here’s how you find them.
+A directory of Baltimore-area comedians and their upcoming shows.
 </p>
 <div class="cta-row">
 <p><a class="cta-button filled" href="./shows.html">See Upcoming Shows</a> <a class="cta-button" href="./comedians.html">Find a Comedian</a></p>
 </div>
 </section>
+<section id="what-this-is" class="level2">
+<h2 class="anchored" data-anchor-id="what-this-is">What This Is</h2>
+<p>Baltimore has an enormous amount of comedic talent and, historically, a scattered way of advertising it — a flyer taped to a pole, a group chat, a hard-to-find Instagram Story. <strong>Baltimore Comedy.org</strong> exists to fix that: one place where local comedians can be found, booked, and followed, and where audiences can find out where the shows are.</p>
 <div class="grid">
 <section id="find-shows" class="level3 g-col-4">
 <h3 class="anchored" data-anchor-id="find-shows">🎤 Find Shows</h3>
@@ -168,6 +164,7 @@ Baltimore has an enormous amount of comedic talent. Here’s how you find them.
 </div>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -221,14 +218,13 @@ Baltimore has an enormous amount of comedic talent. Here’s how you find them.
       e.clearSelection();
     }
     const getTextToCopy = function(trigger) {
-      const outerScaffold = trigger.parentElement.cloneNode(true);
-      const codeEl = outerScaffold.querySelector('code');
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
         }
-      }
-      return codeEl.innerText;
+        return codeEl.innerText;
     }
     const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
       text: getTextToCopy
