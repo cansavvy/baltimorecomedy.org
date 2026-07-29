@@ -4,7 +4,7 @@ page-layout: full
 ---
 
 ::: {.hero}
-# Baltimore is Funny<span style="color:#ede3cc;">.org</span>
+# Baltimore is <span style="color:#ede3cc;">Funny</span>
 
 <div class="gold-rule"></div>
 
