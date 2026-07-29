@@ -60,6 +60,7 @@ EVENTBRITE_ORGANIZER_URLS: list[str] = [
     "https://www.eventbrite.com/o/5340822879",
     "https://www.eventbrite.com/o/32042122709",
     "https://www.eventbrite.com/o/119257059441",
+    "https://www.eventbrite.com/o/53504738663"
 ]
 
 OUTPUT_DIR = "_generated"
