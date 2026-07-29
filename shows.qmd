@@ -16,6 +16,8 @@ Click a show name for tickets or event details. Dates are Eastern Time.
 
 {{< include _generated/shows-content.qmd >}}
 
+Are you a showrunner with an eventbrite? Send your eventbrite link to <a href="mailto:candyscomedybaltimore@gmail.com">candyscomedybaltimore@gmail.com</a> and this website will automatically show any events underneath your profile. 
+
 <div style="text-align:center; margin-top:2.5rem;">
 <a class="cta-button" href="submit.qmd">Have a show to add? →</a>
 </div>

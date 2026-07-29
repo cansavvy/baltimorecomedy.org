@@ -35,6 +35,7 @@ publicly once "Publish to web" is turned on -- no API key or auth needed.
 import csv
 import io
 import json
+import os
 import re
 import sys
 import urllib.request
@@ -57,6 +58,7 @@ OPENMICS_CSV_URL = None     # Open mic listing sheet, published as CSV
 EVENTBRITE_ORGANIZER_URLS: list[str] = [
     "https://www.eventbrite.com/o/5340822879",
     "https://www.eventbrite.com/o/32042122709",
+    "https://www.eventbrite.com/o/119257059441",
 ]
 
 OUTPUT_DIR = "_generated"
@@ -126,6 +128,33 @@ def normalize_form_rows(rows: list[dict]) -> list[dict]:
             "source": "form",
         })
     return out
+
+
+def extract_start_raw(node: dict):
+    """Try a bunch of the field-name shapes Eventbrite-style embedded
+    JSON commonly uses for an event's start date/time. Checked in
+    order; first non-empty match wins."""
+    candidates = [
+        node.get("start_date"),
+        node.get("startDate"),
+        node.get("start_time"),
+        node.get("startTime"),
+        node.get("date"),
+        node.get("eventDate"),
+    ]
+    start_node = node.get("start")
+    if isinstance(start_node, dict):
+        candidates.extend([
+            start_node.get("utc"),
+            start_node.get("local"),
+            start_node.get("date"),
+        ])
+    elif isinstance(start_node, str):
+        candidates.append(start_node)
+    for c in candidates:
+        if c:
+            return c
+    return None
 
 
 def fetch_eventbrite_organizer_events(organizer_url: str) -> list[dict]:
@@ -203,6 +232,7 @@ def fetch_eventbrite_organizer_events(organizer_url: str) -> list[dict]:
         return []
 
     found = {}  # keyed by url, to dedupe
+    raw_samples = []  # first few raw matched nodes, for --debug-eventbrite
 
     def walk(node):
         if isinstance(node, dict):
@@ -210,13 +240,7 @@ def fetch_eventbrite_organizer_events(organizer_url: str) -> list[dict]:
             name = node.get("name") or node.get("title")
             if isinstance(url, str) and "/e/" in url and name:
                 if url not in found:
-                    start_raw = (
-                        node.get("start_date")
-                        or node.get("startDate")
-                        or (node.get("start") or {}).get("utc")
-                        if isinstance(node.get("start"), dict)
-                        else node.get("start")
-                    )
+                    start_raw = extract_start_raw(node)
                     venue = ""
                     v = node.get("venue") or node.get("primary_venue") or node.get("location")
                     if isinstance(v, dict):
@@ -231,6 +255,8 @@ def fetch_eventbrite_organizer_events(organizer_url: str) -> list[dict]:
                         "tag": "",
                         "source": "eventbrite",
                     }
+                    if len(raw_samples) < 3:
+                        raw_samples.append(node)
             for v in node.values():
                 walk(v)
         elif isinstance(node, list):
@@ -241,6 +267,16 @@ def fetch_eventbrite_organizer_events(organizer_url: str) -> list[dict]:
 
     events = list(found.values())
     print(f"  [eventbrite] {organizer_url} -> {len(events)} event(s) found")
+
+    if os.environ.get("EVENTBRITE_DEBUG") and raw_samples:
+        print("\n  [eventbrite debug] raw keys on first matched event node:")
+        print(" ", sorted(raw_samples[0].keys()))
+        date_like = {
+            k: v for k, v in raw_samples[0].items()
+            if any(w in k.lower() for w in ("date", "start", "time"))
+        }
+        print("  [eventbrite debug] date-ish fields on that node:", date_like)
+
     return events
 
 
