@@ -7,6 +7,7 @@ project:
 
 website:
   title: ""
+  google-analytics: "G-462HTM8M2V"
   site-url: "https://baltimorecomedy.org"
   description: "Baltimore's finest (and most questionable) comedic talent, all in one place."
   navbar:
