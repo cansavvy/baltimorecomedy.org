@@ -1,0 +1,30 @@
+---
+title: "Open Mics"
+subtitle: "Weekly open mics across Baltimore, Southern PA & Central Maryland"
+---
+
+<!--
+This page's table is auto-generated from the open mic listing sheet.
+Don't hand-edit this file — see README.md -> "How updates work."
+-->
+
+Low on cash, but still wanna see comedy? Come see an open mic show. 
+
+It's not as polished as paid shows, you get what you pay for. Comedians have to work on these jokes somewhere before the big show. 
+
+::: {.aside-note}
+
+Thanks to @mo_noor_lol for collecting this spreadsheet in the first place. 
+You may want to confirm with the host before trying out a new mic. Things change. 
+:::
+
+<div class="sheet-embed-wrap">
+<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSAxpZ6jerNNfwdMnqPX3rrTN6WQ-kKOmEplH2OGiUH384XWFLB9i6-WDMXM4GzMvSlIJkjBtknnZ1Q/pubhtml?gid=0&single=true&widget=true&headers=false"
+  width="100%" height="1000" frameborder="0">
+  Loading…
+</iframe>
+</div>
+
+<div style="text-align:center; margin-top:2rem;">
+<a class="cta-button" href="submit.qmd">Know a open mic that's missing? →</a>
+</div>

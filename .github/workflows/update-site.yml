@@ -1,0 +1,50 @@
+name: Update Baltimore Comedy site
+
+# Runs automatically every morning, and any time you push to main.
+# You can also trigger it by hand from the Actions tab (Run workflow)
+# right after approving something in a sheet, if you don't want to wait
+# for the schedule.
+on:
+  schedule:
+    - cron: "0 12 * * *"   # 8am US Eastern (UTC-4) — adjust if needed
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Pull approved rows and regenerate content
+        run: python3 scripts/generate_content.py
+
+      - name: Commit regenerated content (if anything changed)
+        run: |
+          git config user.name "baltimore-comedy-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add _generated
+          git diff --cached --quiet || git commit -m "Auto-update content from sheets"
+          git push || true
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Render site
+        run: quarto render
+
+      - name: Publish to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site

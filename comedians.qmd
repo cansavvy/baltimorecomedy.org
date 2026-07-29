@@ -1,0 +1,17 @@
+---
+title: "Find a Comedian"
+subtitle: "Baltimore-area stand-up, improv, and comedy talent"
+---
+
+<!--
+This page's grid is auto-generated from the "Add a Comedian" Google Form
+responses (see /submit.qmd and FORM-SPEC.md). To add or edit a comedian,
+don't edit this file — use the form, or edit the source sheet and mark
+the row Approved. See README.md -> "How updates work."
+-->
+
+{{< include _generated/comedians-content.qmd >}}
+
+<div style="text-align:center; margin-top:1rem;">
+<a class="cta-button" href="submit.qmd">Not listed yet? Add yourself →</a>
+</div>

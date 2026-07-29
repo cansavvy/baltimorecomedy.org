@@ -1,0 +1,21 @@
+---
+title: "Upcoming Shows"
+subtitle: "Dates and links for shows around the city"
+---
+
+<!--
+This page's list is auto-generated from the "Add a Show" Google Form
+responses (see /submit.qmd and FORM-SPEC.md). To add a show, don't edit
+this file — use the form, or edit the source sheet and mark the row
+Approved. See README.md -> "How updates work."
+-->
+
+::: {.aside-note}
+Click a show name for tickets or event details. Dates are Eastern Time.
+:::
+
+{{< include _generated/shows-content.qmd >}}
+
+<div style="text-align:center; margin-top:2.5rem;">
+<a class="cta-button" href="submit.qmd">Have a show to add? →</a>
+</div>

@@ -1,29 +1,43 @@
 project:
   type: website
-  output-dir: docs
-  
+  output-dir: _site
+  render:
+    - "*.qmd"
+    - "!FORM-SPEC.md"
+
 website:
-  title: "OTTR Template Website"
+  title: "Baltimore Comedy"
+  site-url: "https://baltimorecomedy.org"
+  description: "Baltimore's finest (and most questionable) comedic talent, all in one place."
   navbar:
+    background: "#05070d"
+    foreground: "#e8dcc3"
+    logo: images/logo-mark.svg
+    title: "BALTIMORE COMEDY"
     left:
-    - text: ""
-      href: index.qmd
-      icon: fa-home
-    - text: 1. Setup
-      href: setup.qmd
-    - text: 2. Hosting
-      href: hosting.qmd
-    - text: Editing
-      href: editing.qmd
-    - text: 3. Style
-      href: style.qmd
-    - text: 4. Git Actions
-      href: git_actions.qmd
-    - text: More ottr docs
-      href: https://www.ottrproject.org/
+      - href: index.qmd
+        text: Home
+      - href: shows.qmd
+        text: Shows
+      - href: comedians.qmd
+        text: Find Comedians
+      - href: open-mics.qmd
+        text: Open Mics
+      - href: submit.qmd
+        text: Get Listed
+  page-footer:
+    background: "#05070d"
+    foreground: "#5b7fa6"
+    left: "© 2026 Baltimore Comedy.org"
+    right: "Baltimore, MD"
 
 format:
   html:
-    theme: cosmo
+    theme: [darkly, styles.scss]
     css: styles.css
-    toc: true
+    toc: false
+    grid:
+      body-width: 1000px
+    fontsize: 1.05rem
+    linkcolor: "#6fb7ff"
+    mainfont: "Source Sans 3"
