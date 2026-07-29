@@ -32,6 +32,7 @@ Each published CSV URL only exposes read-only data Google already serves
 publicly once "Publish to web" is turned on -- no API key or auth needed.
 """
 
+import calendar
 import csv
 import io
 import json
@@ -47,8 +48,8 @@ from datetime import datetime, date
 # be left untouched / shown as "pending" on the site).
 
 SHOWS_CSV_URL = None        # "Add a Show" response sheet, published as CSV
-COMEDIANS_CSV_URL = None    # "Add a Comedian" response sheet, published as CSV
-OPENMICS_CSV_URL = None     # Open mic listing sheet, published as CSV
+COMEDIANS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTXiMDWyDOFeYXxdOX6KVpzMOu3yeszvBt0oQ7HlupDRuKJnWF8apg7wpYh-sPUjVBkeIcxUFBp2u4r/pub?output=csv"    # "Add a Comedian" response sheet, published as CSV
+OPENMICS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDB_QGh0L4oqe0jUFl-jvxoObctjaM2cwD4dsqtPvFJ2HBHEPggAIXCe297jxK0Dr7jvUMslWehRCL/pub?output=csv"     # Open mic listing sheet, published as CSV
 
 # Eventbrite organizer pages to pull events from automatically, e.g.:
 #   "https://www.eventbrite.com/o/119257059441"
@@ -301,12 +302,14 @@ def fetch_all_eventbrite_events(organizer_urls: list[str]) -> list[dict]:
 
 def build_shows_content(events: list[dict]) -> str:
     """events: list of normalized dicts with name/venue/date/link/tag/source
-    (see normalize_form_rows and fetch_eventbrite_organizer_events)."""
-    dated = [(e.get("date"), e) for e in events]
-    # Undated rows sort last, but still get included
-    dated.sort(key=lambda pair: (pair[0] is None, pair[0] or date.max))
+    (see normalize_form_rows and fetch_eventbrite_organizer_events).
+    Renders one calendar-style month grid per month that has shows, plus
+    a small list at the end for anything without a confirmed date."""
+    dated = [e for e in events if e.get("date")]
+    undated = [e for e in events if not e.get("date")]
+    dated.sort(key=lambda e: e["date"])
 
-    if not dated:
+    if not dated and not undated:
         return (
             "::: {.aside-note}\n"
             "No approved shows yet. Once rows are marked Approved in the "
@@ -324,33 +327,78 @@ def build_shows_content(events: list[dict]) -> str:
         "",
     ]
 
-    current_month = None
-    for d, e in dated:
-        month_label = d.strftime("%B %Y") if d else "Date TBD"
-        if month_label != current_month:
-            if current_month is not None:
-                lines.append("</ul>\n")
-            lines.append(f"### {month_label}\n")
-            lines.append('<ul class="show-list">\n')
-            current_month = month_label
+    # Group dated events by (year, month), then by day-of-month within that.
+    months: dict = {}
+    for e in dated:
+        key = (e["date"].year, e["date"].month)
+        months.setdefault(key, []).append(e)
 
-        name = escape_html(e.get("name", "Untitled Show"))
-        venue = escape_html(e.get("venue", ""))
-        link = e.get("link") or "#"
-        day_label = d.strftime("%a, %b %-d") if d else "TBD"
-        label = f"{name} — {venue}" if venue else name
+    for (year, month) in sorted(months.keys()):
+        month_events = months[(year, month)]
+        by_day: dict = {}
+        for e in month_events:
+            by_day.setdefault(e["date"].day, []).append(e)
 
-        tag = e.get("tag", "")
-        tag_html = f" <em>({escape_html(tag)})</em>" if tag else ""
+        month_label = date(year, month, 1).strftime("%B %Y")
+        lines.append(f"### {month_label}\n")
+        lines.append('<div class="cal-wrap">')
+        lines.append('<div class="cal-grid">')
 
-        lines.append('<li class="show-item">')
-        lines.append(
-            f'<span class="show-name"><a href="{escape_html(link)}" target="_blank">{label}</a>{tag_html}</span>'
-        )
-        lines.append(f'<span class="show-date">{day_label}</span>')
-        lines.append("</li>\n")
+        for dow in ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]:
+            lines.append(f'<div class="cal-dow">{dow}</div>')
 
-    lines.append("</ul>")
+        # calendar.monthrange gives weekday of the 1st with Monday=0..Sunday=6;
+        # convert to a Sunday-first offset for a standard US calendar layout.
+        first_weekday, days_in_month = calendar.monthrange(year, month)
+        leading_blanks = (first_weekday + 1) % 7
+
+        for _ in range(leading_blanks):
+            lines.append('<div class="cal-day empty"></div>')
+
+        for day_num in range(1, days_in_month + 1):
+            day_events = by_day.get(day_num, [])
+            css_class = "cal-day has-shows" if day_events else "cal-day"
+            lines.append(f'<div class="{css_class}">')
+            lines.append(f'<span class="cal-daynum">{day_num}</span>')
+            for e in day_events:
+                name = escape_html(e.get("name", "Untitled Show"))
+                venue = escape_html(e.get("venue", ""))
+                link = e.get("link") or "#"
+                tag = e.get("tag", "")
+                full_title = f"{name} — {venue}" if venue else name
+                if tag:
+                    full_title += f" ({tag})"
+                lines.append(
+                    f'<a class="cal-show" href="{escape_html(link)}" target="_blank" title="{escape_html(full_title)}">{name}</a>'
+                )
+            lines.append("</div>")
+
+        # Trailing blanks so the grid fills out to a full last row.
+        trailing = (7 - (leading_blanks + days_in_month) % 7) % 7
+        for _ in range(trailing):
+            lines.append('<div class="cal-day empty"></div>')
+
+        lines.append("</div>")  # .cal-grid
+        lines.append("</div>\n")  # .cal-wrap
+
+    if undated:
+        lines.append("### Date TBD\n")
+        lines.append('<ul class="show-list">\n')
+        for e in undated:
+            name = escape_html(e.get("name", "Untitled Show"))
+            venue = escape_html(e.get("venue", ""))
+            link = e.get("link") or "#"
+            label = f"{name} — {venue}" if venue else name
+            tag = e.get("tag", "")
+            tag_html = f" <em>({escape_html(tag)})</em>" if tag else ""
+            lines.append('<li class="show-item">')
+            lines.append(
+                f'<span class="show-name"><a href="{escape_html(link)}" target="_blank">{label}</a>{tag_html}</span>'
+            )
+            lines.append('<span class="show-date">TBD</span>')
+            lines.append("</li>\n")
+        lines.append("</ul>")
+
     return "\n".join(lines)
 
 
@@ -599,37 +647,58 @@ def write_file(path: str, content: str):
 
 def main():
     any_run = False
+    had_failure = False
 
     if SHOWS_CSV_URL or EVENTBRITE_ORGANIZER_URLS:
-        form_rows = fetch_csv_rows(SHOWS_CSV_URL) if SHOWS_CSV_URL else []
-        combined_events = normalize_form_rows(form_rows) + fetch_all_eventbrite_events(
-            EVENTBRITE_ORGANIZER_URLS
-        )
-        write_file(f"{OUTPUT_DIR}/shows-content.qmd", build_shows_content(combined_events))
-        if SHOWS_CSV_URL:
-            write_file(
-                f"{OUTPUT_DIR}/openmics-submitted.qmd",
-                build_submitted_openmics_content(form_rows),
+        try:
+            form_rows = fetch_csv_rows(SHOWS_CSV_URL) if SHOWS_CSV_URL else []
+            combined_events = normalize_form_rows(form_rows) + fetch_all_eventbrite_events(
+                EVENTBRITE_ORGANIZER_URLS
             )
-        any_run = True
+            write_file(f"{OUTPUT_DIR}/shows-content.qmd", build_shows_content(combined_events))
+            if SHOWS_CSV_URL:
+                write_file(
+                    f"{OUTPUT_DIR}/openmics-submitted.qmd",
+                    build_submitted_openmics_content(form_rows),
+                )
+            any_run = True
+        except Exception as e:
+            print(f"[shows] FAILED, leaving existing shows-content.qmd untouched: {e}", file=sys.stderr)
+            had_failure = True
 
     if COMEDIANS_CSV_URL:
-        rows = fetch_csv_rows(COMEDIANS_CSV_URL)
-        write_file(f"{OUTPUT_DIR}/comedians-content.qmd", build_comedians_content(rows))
-        any_run = True
+        try:
+            rows = fetch_csv_rows(COMEDIANS_CSV_URL)
+            write_file(f"{OUTPUT_DIR}/comedians-content.qmd", build_comedians_content(rows))
+            any_run = True
+        except Exception as e:
+            print(f"[comedians] FAILED, leaving existing comedians-content.qmd untouched: {e}", file=sys.stderr)
+            had_failure = True
 
     if OPENMICS_CSV_URL:
-        rows = fetch_csv_rows(OPENMICS_CSV_URL)
-        write_file(f"{OUTPUT_DIR}/openmics-content.qmd", build_openmics_content(rows))
-        any_run = True
+        try:
+            rows = fetch_csv_rows(OPENMICS_CSV_URL)
+            write_file(f"{OUTPUT_DIR}/openmics-content.qmd", build_openmics_content(rows))
+            any_run = True
+        except Exception as e:
+            print(f"[openmics] FAILED, leaving existing openmics-content.qmd untouched: {e}", file=sys.stderr)
+            had_failure = True
 
-    if not any_run:
+    if not any_run and not had_failure:
         print(
             "Nothing configured yet — nothing to do. Set SHOWS_CSV_URL / "
             "COMEDIANS_CSV_URL / OPENMICS_CSV_URL and/or "
             "EVENTBRITE_ORGANIZER_URLS at the top of scripts/generate_content.py.",
             file=sys.stderr,
         )
+
+    # Deliberately always exit 0 (success), even if a section above failed.
+    # A failed section leaves its existing _generated/*.qmd file untouched
+    # (see the try/except blocks above) rather than blank or broken, so
+    # there's always something valid to render and deploy. Exiting
+    # non-zero here would stop the GitHub Actions workflow's later render
+    # + deploy steps entirely — worse than just shipping slightly stale
+    # content for the one section that had trouble.
 
 
 if __name__ == "__main__":
