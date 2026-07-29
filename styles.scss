@@ -8,6 +8,8 @@ $deep-blue-lt: #1c3f6e;
 $accent:       #6fb7ff;
 $accent-dim:   #5b7fa6;
 $offwhite:     #dbe6f5;
+$gold:         #e8c15a;
+$gold-dim:     #b99a4c;
 
 $body-bg:      $black;
 $body-color:   $offwhite;
@@ -35,14 +37,19 @@ body {
     radial-gradient(circle at 80% 60%, rgba(28,63,110,0.14), transparent 45%),
     radial-gradient(1px 1px at 10% 15%, rgba(219,230,245,0.8), transparent 100%),
     radial-gradient(1px 1px at 25% 60%, rgba(219,230,245,0.6), transparent 100%),
-    radial-gradient(1px 1px at 40% 30%, rgba(219,230,245,0.7), transparent 100%),
+    radial-gradient(1.5px 1.5px at 40% 30%, rgba(232,193,90,0.9), transparent 100%),
     radial-gradient(1px 1px at 55% 80%, rgba(219,230,245,0.5), transparent 100%),
     radial-gradient(1px 1px at 70% 20%, rgba(219,230,245,0.7), transparent 100%),
-    radial-gradient(1px 1px at 85% 55%, rgba(219,230,245,0.6), transparent 100%),
+    radial-gradient(1.5px 1.5px at 85% 55%, rgba(232,193,90,0.85), transparent 100%),
     radial-gradient(1px 1px at 92% 85%, rgba(219,230,245,0.5), transparent 100%),
     radial-gradient(1px 1px at 15% 90%, rgba(219,230,245,0.4), transparent 100%),
     radial-gradient(1px 1px at 65% 45%, rgba(219,230,245,0.4), transparent 100%);
   background-attachment: fixed;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.15); }
 }
 
 h1, h2, h3, h4 {

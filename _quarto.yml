@@ -6,7 +6,7 @@ project:
     - "!FORM-SPEC.md"
 
 website:
-  title: "Baltimore Comedy"
+  title: ""
   site-url: "https://baltimorecomedy.org"
   description: "Baltimore's finest (and most questionable) comedic talent, all in one place."
   navbar:
