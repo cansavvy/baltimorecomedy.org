@@ -10,6 +10,8 @@ don't edit this file — use the form, or edit the source sheet and mark
 the row Approved. See README.md -> "How updates work."
 -->
 
+Comedians are in alphabetical order. 
+
 {{< include _generated/comedians-content.qmd >}}
 
 <div style="text-align:center; margin-top:1rem;">

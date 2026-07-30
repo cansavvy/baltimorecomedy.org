@@ -47,9 +47,9 @@ from datetime import datetime, date
 # and sheets exist. Leave a value as None to skip that section (it will
 # be left untouched / shown as "pending" on the site).
 
-SHOWS_CSV_URL = None        # "Add a Show" response sheet, published as CSV
+SHOWS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDB_QGh0L4oqe0jUFl-jvxoObctjaM2cwD4dsqtPvFJ2HBHEPggAIXCe297jxK0Dr7jvUMslWehRCL/pub?output=csv"          # "Add a Show" response sheet, published as CSV
 COMEDIANS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTXiMDWyDOFeYXxdOX6KVpzMOu3yeszvBt0oQ7HlupDRuKJnWF8apg7wpYh-sPUjVBkeIcxUFBp2u4r/pub?output=csv"    # "Add a Comedian" response sheet, published as CSV
-OPENMICS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDB_QGh0L4oqe0jUFl-jvxoObctjaM2cwD4dsqtPvFJ2HBHEPggAIXCe297jxK0Dr7jvUMslWehRCL/pub?output=csv"     # Open mic listing sheet, published as CSV
+OPENMICS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSAxpZ6jerNNfwdMnqPX3rrTN6WQ-kKOmEplH2OGiUH384XWFLB9i6-WDMXM4GzMvSlIJkjBtknnZ1Q/pub?output=csv"
 
 # Eventbrite organizer pages to pull events from automatically, e.g.:
 #   "https://www.eventbrite.com/o/119257059441"
@@ -67,10 +67,38 @@ OUTPUT_DIR = "_generated"
 # ======================================================================
 
 
-def fetch_csv_rows(url: str) -> list[dict]:
-    """Download a published-to-web Google Sheet CSV and return rows as dicts."""
+def fetch_csv_rows(url: str, header_hint: str = None) -> list[dict]:
+    """Download a published-to-web Google Sheet CSV and return rows as dicts.
+
+    Most sheets have their real column headers on row 1, and the default
+    behavior (header_hint=None) assumes that. Some sheets — like the open
+    mic listing, which has a few lines of banner/instruction text above
+    the actual table — don't. Pass header_hint (e.g. "Name") to instead
+    scan for the first row that contains that value among its cells and
+    treat THAT as the real header row, ignoring anything above it.
+    """
     with urllib.request.urlopen(url, timeout=30) as response:
         raw = response.read().decode("utf-8-sig")
+
+    if header_hint:
+        all_rows = list(csv.reader(io.StringIO(raw)))
+        header_idx = next(
+            (i for i, row in enumerate(all_rows)
+             if any(cell.strip().lower() == header_hint.lower() for cell in row)),
+            None,
+        )
+        if header_idx is not None:
+            headers = [h.strip() for h in all_rows[header_idx]]
+            return [
+                {
+                    (headers[i] if i < len(headers) and headers[i] else f"col_{i}"): (cell or "").strip()
+                    for i, cell in enumerate(row)
+                }
+                for row in all_rows[header_idx + 1:]
+            ]
+        # header_hint not found anywhere — fall through to the plain
+        # row-1-is-the-header behavior below rather than fail outright.
+
     reader = csv.DictReader(io.StringIO(raw))
     return [{(k or "").strip(): (v or "").strip() for k, v in row.items()} for row in reader]
 
@@ -411,15 +439,9 @@ def build_shows_content(events: list[dict], openmic_entries: list[dict] = None) 
                     full_title += f" ({mic_time})"
                 if m.get("notes"):
                     full_title += f" — {m['notes']}"
-                link = m.get("link", "").strip()
-                if link:
-                    lines.append(
-                        f'<a class="cal-mic" href="{escape_html(link)}" target="_blank" title="{escape_html(full_title)}">{name}</a>'
-                    )
-                else:
-                    lines.append(
-                        f'<span class="cal-mic" title="{escape_html(full_title)}">{name}</span>'
-                    )
+                lines.append(
+                    f'<a class="cal-mic" href="open-mics.qmd" title="{escape_html(full_title)}">{name}</a>'
+                )
 
             lines.append("</div>")
 
@@ -434,7 +456,7 @@ def build_shows_content(events: list[dict], openmic_entries: list[dict] = None) 
     if mics_by_weekday:
         lines.append(
             '<p class="cal-legend"><span class="cal-legend-swatch cal-legend-show"></span> One-off shows '
-            '&nbsp;&nbsp;<span class="cal-legend-swatch cal-legend-mic"></span> Recurring open mics</p>\n'
+            '&nbsp;&nbsp;<span class="cal-legend-mic-item"><span class="cal-legend-swatch cal-legend-mic"></span> Recurring open mics</span></p>\n'
         )
 
     if undated:
@@ -846,7 +868,7 @@ def main():
     openmic_rows = []
     if OPENMICS_CSV_URL:
         try:
-            openmic_rows = fetch_csv_rows(OPENMICS_CSV_URL)
+            openmic_rows = fetch_csv_rows(OPENMICS_CSV_URL, header_hint="Name")
         except Exception as e:
             print(f"[openmics] FAILED to fetch sheet: {e}", file=sys.stderr)
             had_failure = True
@@ -927,5 +949,48 @@ if __name__ == "__main__":
             print(f"\nExtracted {len(events)} event(s):\n")
             for e in events:
                 print(f"  - {e['name']!r} | venue={e['venue']!r} | date={e['date']} | {e['link']}")
+
+    elif len(sys.argv) > 1 and sys.argv[1] == "--debug-openmics":
+        if not OPENMICS_CSV_URL:
+            print("OPENMICS_CSV_URL is not set at the top of this script — nothing to fetch.", file=sys.stderr)
+            sys.exit(1)
+        print(f"Fetching {OPENMICS_CSV_URL} ...\n")
+        try:
+            rows = fetch_csv_rows(OPENMICS_CSV_URL, header_hint="Name")
+        except Exception as e:
+            print(f"FAILED to fetch the sheet: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        print(f"Fetched {len(rows)} raw row(s) from the sheet.")
+        if rows:
+            print(f"Column headers found: {list(rows[0].keys())}\n")
+        else:
+            print("The sheet came back completely empty — check the URL and that it's published as CSV.\n")
+
+        entries = extract_openmic_entries(rows)
+        with_weekday = [e for e in entries if e["weekday"] is not None]
+        without_weekday = [e for e in entries if e["weekday"] is None]
+
+        print(f"Parsed {len(entries)} mic entr{'y' if len(entries)==1 else 'ies'} total.")
+        print(f"  -> {len(with_weekday)} resolved to a specific weekday (these WILL show on the calendar)")
+        print(f"  -> {len(without_weekday)} did NOT resolve to a weekday (these will NOT show on the calendar)\n")
+
+        if with_weekday:
+            print("Entries that resolved correctly (first 10 shown):")
+            for e in with_weekday[:10]:
+                occ = f", occurrences={e['occurrences']}" if e.get("occurrences") else ""
+                print(f"  - {e['name']!r} -> {WEEKDAY_DISPLAY[e['weekday']]}{occ}")
+            print()
+
+        if without_weekday:
+            print("Entries that did NOT resolve a weekday (first 10 shown) — these are why mics are missing:")
+            for e in without_weekday[:10]:
+                print(f"  - {e['name']!r} (venue={e['venue']!r})")
+            print()
+
+        print("First 10 raw rows exactly as read from the sheet, for inspection:")
+        for r in rows[:10]:
+            print(" ", dict(r))
+
     else:
         main()
