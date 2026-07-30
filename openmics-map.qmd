@@ -1,0 +1,4 @@
+<!-- no map data yet — set OPENMICS_CSV_URL and run the pipeline -->
+<script>
+window.BC_MIC_LOCATIONS = [];
+</script>

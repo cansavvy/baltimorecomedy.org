@@ -1,0 +1,64 @@
+---
+title: "Open Mic Map"
+subtitle: "Every mic on the list, plotted"
+---
+
+<!--
+The pins on this map are auto-generated from the open mic listing sheet
+(see scripts/generate_content.py -> build_map_data). Coordinates come
+from OpenStreetMap's free Nominatim geocoder and are cached in
+_generated/geocode-cache.json, so re-runs only look up brand-new
+addresses instead of re-geocoding everything every time.
+-->
+
+::: {.aside-note}
+Pins are placed automatically from each venue's address and won't be
+perfectly precise everywhere — click a pin for details, or head to the
+[full list](open-mics.qmd) for everything in table form.
+:::
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<div id="openmic-map" style="height: 650px; border-radius: 4px; overflow: hidden; border: 1px solid rgba(91,127,166,0.4);"></div>
+
+{{< include _generated/openmics-map.qmd >}}
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function() {
+  var points = window.BC_MIC_LOCATIONS || [];
+  var map = L.map('openmic-map').setView([39.29, -76.61], 9); // roughly centered on Baltimore
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    maxZoom: 19,
+  }).addTo(map);
+
+  var bounds = [];
+  points.forEach(function(m) {
+    var marker = L.circleMarker([m.lat, m.lng], {
+      radius: 7,
+      color: '#b98aff',
+      weight: 1,
+      fillColor: '#b98aff',
+      fillOpacity: 0.85,
+    }).addTo(map);
+
+    var popup = '<strong>' + m.name + '</strong>';
+    if (m.venue) popup += '<br>' + m.venue;
+    if (m.weekday_name) popup += '<br>' + m.weekday_name + (m.time ? ' ' + m.time : '');
+    if (m.link) popup += '<br><a href="' + m.link + '">Details &amp; sign-up →</a>';
+    marker.bindPopup(popup);
+
+    bounds.push([m.lat, m.lng]);
+  });
+
+  if (bounds.length) {
+    map.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 });
+  }
+})();
+</script>
+
+<div style="text-align:center; margin-top:2rem;">
+<a class="cta-button" href="open-mics.qmd">See the full list →</a>
+</div>

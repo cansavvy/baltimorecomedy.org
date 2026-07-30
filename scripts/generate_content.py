@@ -39,6 +39,8 @@ import json
 import os
 import re
 import sys
+import time
+import urllib.parse
 import urllib.request
 from datetime import datetime, date
 
@@ -60,7 +62,6 @@ EVENTBRITE_ORGANIZER_URLS: list[str] = [
     "https://www.eventbrite.com/o/5340822879",
     "https://www.eventbrite.com/o/32042122709",
     "https://www.eventbrite.com/o/119257059441",
-    "https://www.eventbrite.com/o/18445769829"
 ]
 
 OUTPUT_DIR = "_generated"
@@ -789,10 +790,12 @@ def extract_openmic_entries(rows: list[dict]) -> list[dict]:
         notes = pick_field(row, "Notes/Details", "Notes", "Details")
         raw_link = pick_field(row, "Link", "Website", "Instagram")
         other_raw = pick_field(row, "Other")
-        venue = pick_field(row, "Venue", "Location", "Place", "Address")
+        venue = pick_field(row, "Venue", "Location", "Place")
+        address = pick_field(row, "Address")
         entries.append({
             "name": name.strip(),
-            "venue": venue,
+            "venue": venue or address,
+            "address": address,
             "time": pick_field(row, "Time"),
             "weekday": weekday,
             "occurrences": parse_month_occurrences(notes),
@@ -801,7 +804,7 @@ def extract_openmic_entries(rows: list[dict]) -> list[dict]:
             "link": resolve_openmic_link(raw_link),
             "other": other_raw,
             "other_link": resolve_openmic_link(other_raw),
-            "slug": slugify(f"{name.strip()}-{venue}"),
+            "slug": slugify(f"{name.strip()}-{venue or address}"),
         })
 
     return entries
@@ -876,6 +879,107 @@ def build_openmics_content(rows: list[dict]) -> str:
     return "\n".join(lines)
 
 
+# --------------------------- MAP ---------------------------
+
+GEOCODE_CACHE_PATH = f"{OUTPUT_DIR}/geocode-cache.json"
+MAX_NEW_GEOCODES_PER_RUN = 60  # safety valve; leftovers just get picked up next run
+
+
+def load_geocode_cache() -> dict:
+    try:
+        with open(GEOCODE_CACHE_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def save_geocode_cache(cache: dict):
+    with open(GEOCODE_CACHE_PATH, "w", encoding="utf-8") as f:
+        json.dump(cache, f, indent=2, sort_keys=True)
+
+
+def geocode_address(query: str):
+    """
+    Look up [lat, lng] for a free-text address using OpenStreetMap's
+    Nominatim — free, no API key, but their usage policy requires: max
+    ~1 request/second, and a descriptive User-Agent identifying the app
+    (both handled below). Returns None if nothing was found or the
+    request failed, rather than raising — a single bad address shouldn't
+    break the whole map.
+    """
+    url = "https://nominatim.openstreetmap.org/search?" + urllib.parse.urlencode({
+        "q": query, "format": "json", "limit": 1,
+    })
+    req = urllib.request.Request(url, headers={
+        "User-Agent": "BaltimoreComedyMapBot/1.0 (contact: candyscomedybaltimore@gmail.com)"
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        if data:
+            return [float(data[0]["lat"]), float(data[0]["lon"])]
+    except Exception as e:
+        print(f"  [geocode] failed for {query!r}: {e}", file=sys.stderr)
+    return None
+
+
+def build_map_data(entries: list[dict]) -> str:
+    """
+    Geocodes each mic's venue/address (using a cache on disk so repeat
+    runs only look up NEW addresses, not all of them every time — this
+    is also the caching behavior Nominatim's own usage policy asks for)
+    and returns a Quarto-includable fragment: a <script> tag defining
+    window.BC_MIC_LOCATIONS for the map page to plot.
+    """
+    cache = load_geocode_cache()
+    new_lookups = 0
+    points = []
+
+    for e in entries:
+        venue = (e.get("venue") or "").strip()
+        address = (e.get("address") or "").strip()
+        query = ", ".join(part for part in [venue, address] if part)
+        if not query:
+            continue
+
+        if query in cache:
+            coords = cache[query]
+        elif new_lookups >= MAX_NEW_GEOCODES_PER_RUN:
+            continue  # hit this run's safety cap; pick it up next run
+        else:
+            coords = geocode_address(query)
+            cache[query] = coords
+            new_lookups += 1
+            time.sleep(1.1)  # respect Nominatim's ~1 req/sec rate limit
+
+        if coords:
+            points.append({
+                "name": e.get("name", ""),
+                "venue": venue,
+                "lat": coords[0],
+                "lng": coords[1],
+                "weekday_name": WEEKDAY_DISPLAY[e["weekday"]] if e.get("weekday") is not None else "",
+                "time": e.get("time", ""),
+                "link": f"open-mics.qmd#{e.get('slug', '')}",
+            })
+
+    if new_lookups:
+        save_geocode_cache(cache)
+        print(f"  [geocode] {new_lookups} new address(es) looked up and cached")
+
+    payload = json.dumps(points, indent=2)
+    return (
+        "<!--\n"
+        "AUTO-GENERATED FILE — DO NOT HAND-EDIT\n"
+        "Regenerated by scripts/generate_content.py. Geocoded coordinates\n"
+        f"are cached in {GEOCODE_CACHE_PATH} so repeat runs only look up\n"
+        "NEW addresses.\n"
+        f"Last generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
+        "-->\n\n"
+        f'<script>\nwindow.BC_MIC_LOCATIONS = {payload};\n</script>\n'
+    )
+
+
 # --------------------------- MAIN ---------------------------
 
 def write_file(path: str, content: str):
@@ -934,6 +1038,14 @@ def main():
             any_run = True
         except Exception as e:
             print(f"[openmics] FAILED to build page content, leaving existing openmics-content.qmd untouched: {e}", file=sys.stderr)
+            had_failure = True
+
+        try:
+            entries_for_map = extract_openmic_entries(openmic_rows) if openmic_rows else []
+            write_file(f"{OUTPUT_DIR}/openmics-map.qmd", build_map_data(entries_for_map))
+            any_run = True
+        except Exception as e:
+            print(f"[map] FAILED to build map data, leaving existing openmics-map.qmd untouched: {e}", file=sys.stderr)
             had_failure = True
 
     if not any_run and not had_failure:
@@ -1016,6 +1128,22 @@ if __name__ == "__main__":
         print("First 10 raw rows exactly as read from the sheet, for inspection:")
         for r in rows[:10]:
             print(" ", dict(r))
+
+    elif len(sys.argv) > 1 and sys.argv[1] == "--debug-geocode":
+        if not OPENMICS_CSV_URL:
+            print("OPENMICS_CSV_URL is not set at the top of this script — nothing to fetch.", file=sys.stderr)
+            sys.exit(1)
+        n = int(sys.argv[2]) if len(sys.argv) > 2 else 5
+        print(f"Fetching {OPENMICS_CSV_URL} ...")
+        rows = fetch_csv_rows(OPENMICS_CSV_URL, header_hint="Name")
+        entries = extract_openmic_entries(rows)
+        print(f"Geocoding the first {n} of {len(entries)} mic(s) (not using the cache, to test live):\n")
+        for e in entries[:n]:
+            query = ", ".join(part for part in [e.get("venue", ""), e.get("address", "")] if part)
+            print(f"  {e['name']!r} -> query: {query!r}")
+            coords = geocode_address(query)
+            print(f"    result: {coords}")
+            time.sleep(1.1)
 
     else:
         main()
