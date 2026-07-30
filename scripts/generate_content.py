@@ -58,11 +58,25 @@ OPENMICS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSAxpZ6jerNN
 # Add as many as you like. See the big warning in fetch_eventbrite_organizer_events()
 # below about how reliable this is (short version: best-effort, not an
 # official API, may need retuning if Eventbrite changes their site).
-EVENTBRITE_ORGANIZER_URLS: list[str] = [
-    "https://www.eventbrite.com/o/5340822879",
-    "https://www.eventbrite.com/o/32042122709",
-    "https://www.eventbrite.com/o/119257059441",
-]
+#
+# The actual URLs live in scripts/eventbrite_urls.txt (one per line) so
+# they can be edited without touching this file — see load_eventbrite_urls().
+EVENTBRITE_URLS_FILE = os.path.join(os.path.dirname(__file__), "eventbrite_urls.txt")
+
+
+def load_eventbrite_urls() -> list[str]:
+    try:
+        with open(EVENTBRITE_URLS_FILE, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+    except FileNotFoundError:
+        return []
+    return [
+        line.strip() for line in lines
+        if line.strip() and not line.strip().startswith("#")
+    ]
+
+
+EVENTBRITE_ORGANIZER_URLS: list[str] = load_eventbrite_urls()
 
 OUTPUT_DIR = "_generated"
 
@@ -923,6 +937,59 @@ def geocode_address(query: str):
     return None
 
 
+def build_geocode_candidates(venue: str, address: str) -> list[str]:
+    """
+    Nominatim's free-form search often fails outright when a query
+    combines an unlisted business name with a street address in one
+    string — rather than gracefully ignoring the part it doesn't
+    recognize, it just returns nothing. Try a few query shapes, most
+    specific first, falling back to plainer ones:
+      1. "Venue, Address" (best when the venue itself is a known POI)
+      2. "Address" alone (most reliable for a real street address)
+      3. "Venue" alone (helps if the address is missing or malformed)
+    """
+    venue = (venue or "").strip()
+    address = (address or "").strip()
+    candidates = []
+    if venue and address:
+        candidates.append(f"{venue}, {address}")
+    if address:
+        candidates.append(address)
+    if venue:
+        candidates.append(venue)
+    seen = set()
+    out = []
+    for c in candidates:
+        if c and c not in seen:
+            seen.add(c)
+            out.append(c)
+    return out
+
+
+def geocode_with_fallback(venue: str, address: str, cache: dict, budget: dict):
+    """
+    Tries build_geocode_candidates() in order, using/populating the
+    shared cache dict, stopping at the first query that resolves.
+    `budget` is a mutable {"remaining": N} shared across calls so the
+    per-run safety cap applies across ALL candidate attempts, not per
+    entry. Returns (coords_or_None, used_query_or_None).
+    """
+    for query in build_geocode_candidates(venue, address):
+        if query in cache:
+            coords = cache[query]
+        elif budget["remaining"] <= 0:
+            continue  # cap hit; leave ungeocoded for next run
+        else:
+            coords = geocode_address(query)
+            cache[query] = coords
+            budget["remaining"] -= 1
+            budget["new_lookups"] += 1
+            time.sleep(1.1)  # respect Nominatim's ~1 req/sec rate limit
+        if coords:
+            return coords, query
+    return None, None
+
+
 def build_map_data(entries: list[dict]) -> str:
     """
     Geocodes each mic's venue/address (using a cache on disk so repeat
@@ -932,25 +999,16 @@ def build_map_data(entries: list[dict]) -> str:
     window.BC_MIC_LOCATIONS for the map page to plot.
     """
     cache = load_geocode_cache()
-    new_lookups = 0
+    budget = {"remaining": MAX_NEW_GEOCODES_PER_RUN, "new_lookups": 0}
     points = []
 
     for e in entries:
         venue = (e.get("venue") or "").strip()
         address = (e.get("address") or "").strip()
-        query = ", ".join(part for part in [venue, address] if part)
-        if not query:
+        if not venue and not address:
             continue
 
-        if query in cache:
-            coords = cache[query]
-        elif new_lookups >= MAX_NEW_GEOCODES_PER_RUN:
-            continue  # hit this run's safety cap; pick it up next run
-        else:
-            coords = geocode_address(query)
-            cache[query] = coords
-            new_lookups += 1
-            time.sleep(1.1)  # respect Nominatim's ~1 req/sec rate limit
+        coords, _used_query = geocode_with_fallback(venue, address, cache, budget)
 
         if coords:
             points.append({
@@ -963,9 +1021,9 @@ def build_map_data(entries: list[dict]) -> str:
                 "link": f"open-mics.qmd#{e.get('slug', '')}",
             })
 
-    if new_lookups:
+    if budget["new_lookups"]:
         save_geocode_cache(cache)
-        print(f"  [geocode] {new_lookups} new address(es) looked up and cached")
+        print(f"  [geocode] {budget['new_lookups']} new address(es) looked up and cached")
 
     payload = json.dumps(points, indent=2)
     return (
@@ -1051,8 +1109,9 @@ def main():
     if not any_run and not had_failure:
         print(
             "Nothing configured yet — nothing to do. Set SHOWS_CSV_URL / "
-            "COMEDIANS_CSV_URL / OPENMICS_CSV_URL and/or "
-            "EVENTBRITE_ORGANIZER_URLS at the top of scripts/generate_content.py.",
+            "COMEDIANS_CSV_URL / OPENMICS_CSV_URL at the top of "
+            "scripts/generate_content.py, and/or add organizer URLs to "
+            "scripts/eventbrite_urls.txt.",
             file=sys.stderr,
         )
 
@@ -1137,13 +1196,21 @@ if __name__ == "__main__":
         print(f"Fetching {OPENMICS_CSV_URL} ...")
         rows = fetch_csv_rows(OPENMICS_CSV_URL, header_hint="Name")
         entries = extract_openmic_entries(rows)
-        print(f"Geocoding the first {n} of {len(entries)} mic(s) (not using the cache, to test live):\n")
+        print(f"Geocoding the first {n} of {len(entries)} mic(s), not using the cache, showing each fallback attempt:\n")
         for e in entries[:n]:
-            query = ", ".join(part for part in [e.get("venue", ""), e.get("address", "")] if part)
-            print(f"  {e['name']!r} -> query: {query!r}")
-            coords = geocode_address(query)
-            print(f"    result: {coords}")
-            time.sleep(1.1)
+            candidates = build_geocode_candidates(e.get("venue", ""), e.get("address", ""))
+            print(f"  {e['name']!r}")
+            found = False
+            for query in candidates:
+                coords = geocode_address(query)
+                print(f"    try {query!r} -> {coords}")
+                time.sleep(1.1)
+                if coords:
+                    found = True
+                    break
+            if not found:
+                print("    (none of the fallback queries resolved)")
+            print()
 
     else:
         main()

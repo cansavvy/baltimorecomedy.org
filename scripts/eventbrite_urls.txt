@@ -1,0 +1,11 @@
+# One Eventbrite organizer URL per line, e.g.:
+#   https://www.eventbrite.com/o/119257059441
+#
+# Lines starting with # (like this one) and blank lines are ignored.
+# Add or remove a line, save, and the next pipeline run picks it up —
+# no need to touch generate_content.py at all.
+
+https://www.eventbrite.com/o/5340822879
+https://www.eventbrite.com/o/32042122709
+https://www.eventbrite.com/o/119257059441
+https://www.eventbrite.com/o/33650327891
