@@ -32,7 +32,7 @@ website:
     background: "#05070d"
     foreground: "#5b7fa6"
     left: "© 2026 Baltimore Comedy.org"
-    right: "Baltimore, MD"
+    right: "Website maintained by [Candy](https://candyscomedy.com/)"
 
 format:
   html:
