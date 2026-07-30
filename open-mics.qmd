@@ -22,3 +22,17 @@ and additions go through them directly.
 <div style="text-align:center; margin-top:2rem;">
 <a class="cta-button" href="submit.qmd">Know a mic that's missing? →</a>
 </div>
+
+<script>
+function bcHighlightMicRow() {
+  var id = window.location.hash ? window.location.hash.substring(1) : "";
+  if (!id) return;
+  var row = document.getElementById(id);
+  if (!row) return;
+  row.classList.add("openmic-highlight");
+  row.scrollIntoView({ behavior: "smooth", block: "start" });
+  setTimeout(function() { row.classList.remove("openmic-highlight"); }, 4000);
+}
+document.addEventListener("DOMContentLoaded", bcHighlightMicRow);
+window.addEventListener("hashchange", bcHighlightMicRow);
+</script>

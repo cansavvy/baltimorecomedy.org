@@ -440,8 +440,9 @@ def build_shows_content(events: list[dict], openmic_entries: list[dict] = None) 
                     full_title += f" ({mic_time})"
                 if m.get("notes"):
                     full_title += f" — {m['notes']}"
+                row_slug = m.get("slug") or slugify(f"{m.get('name','')}-{m.get('venue','')}")
                 lines.append(
-                    f'<a class="cal-mic" href="open-mics.qmd" title="{escape_html(full_title)}">{name}</a>'
+                    f'<a class="cal-mic" href="open-mics.qmd#{row_slug}" title="{escape_html(full_title)}">{name}</a>'
                 )
 
             lines.append("</div>")
@@ -702,6 +703,14 @@ def resolve_openmic_link(raw: str) -> str:
     return ""
 
 
+def slugify(text: str) -> str:
+    """Stable identifier used as a table row's id AND the calendar
+    pill's link fragment, so clicking a mic on the calendar can jump to
+    and highlight its actual row on the Open Mics table."""
+    slug = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+    return f"mic-{slug}" if slug else "mic-unknown"
+
+
 ORDINAL_WORDS = {
     "1st": 1, "first": 1,
     "2nd": 2, "second": 2,
@@ -779,17 +788,20 @@ def extract_openmic_entries(rows: list[dict]) -> list[dict]:
 
         notes = pick_field(row, "Notes/Details", "Notes", "Details")
         raw_link = pick_field(row, "Link", "Website", "Instagram")
+        other_raw = pick_field(row, "Other")
+        venue = pick_field(row, "Venue", "Location", "Place", "Address")
         entries.append({
             "name": name.strip(),
-            "venue": pick_field(row, "Venue", "Location", "Place", "Address"),
+            "venue": venue,
             "time": pick_field(row, "Time"),
             "weekday": weekday,
             "occurrences": parse_month_occurrences(notes),
             "notes": notes,
-            "signup": pick_field(row, "Sign-up", "Sign Up", "How to Sign Up"),
-            "cost": pick_field(row, "Cost", "Price"),
             "last_verified": pick_field(row, "Last Verified", "Last Checked"),
             "link": resolve_openmic_link(raw_link),
+            "other": other_raw,
+            "other_link": resolve_openmic_link(other_raw),
+            "slug": slugify(f"{name.strip()}-{venue}"),
         })
 
     return entries
@@ -820,7 +832,7 @@ def build_openmics_content(rows: list[dict]) -> str:
         '<table class="openmic-table">',
         "<thead><tr>",
         "<th>Open Mic</th><th>Venue</th><th>Day / Time</th>"
-        "<th>Sign-up</th><th>Cost</th><th>Last Verified</th>",
+        "<th>Contact</th><th>Notes</th><th>Last Verified</th>",
         "</tr></thead>",
         "<tbody>",
     ]
@@ -830,20 +842,32 @@ def build_openmics_content(rows: list[dict]) -> str:
         venue = escape_html(e["venue"])
         day_name = WEEKDAY_DISPLAY[e["weekday"]] if e["weekday"] is not None else ""
         when = escape_html(" ".join(part for part in [day_name, e["time"]] if part).strip()) or "—"
-        signup = escape_html(e["signup"])
-        cost = escape_html(e["cost"]) or "—"
+        notes = escape_html(e["notes"]) or "—"
         last_verified = escape_html(e["last_verified"]) or today_str
 
-        link = e["link"]
-        name_cell = f'<a href="{escape_html(link)}" target="_blank">{name}</a>' if link else name
+        # Contact: primary link (Instagram/website) plus a secondary
+        # contact (the sheet's "Other" column) if there is one and it's
+        # not just a duplicate of the primary.
+        contact_parts = []
+        if e["link"]:
+            contact_parts.append(f'<a href="{escape_html(e["link"])}" target="_blank">Instagram</a>')
+        other = (e.get("other") or "").strip()
+        if other:
+            if e.get("other_link") and e["other_link"] != e["link"]:
+                contact_parts.append(f'<a href="{escape_html(e["other_link"])}" target="_blank">{escape_html(other)}</a>')
+            elif not e.get("other_link"):
+                contact_parts.append(escape_html(other))
+        contact_cell = " · ".join(contact_parts) if contact_parts else "—"
+
+        row_id = e["slug"]
 
         lines.append(
-            "<tr>"
-            f"<td>{name_cell}</td>"
+            f'<tr id="{row_id}">'
+            f"<td>{name}</td>"
             f"<td>{venue}</td>"
             f"<td>{when}</td>"
-            f"<td>{signup}</td>"
-            f"<td>{cost}</td>"
+            f"<td>{contact_cell}</td>"
+            f"<td>{notes}</td>"
             f'<td class="last-verified">{last_verified}</td>'
             "</tr>"
         )

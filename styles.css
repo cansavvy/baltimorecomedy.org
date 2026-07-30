@@ -438,6 +438,15 @@ table.openmic-table tr:hover td {
   background: rgba(111, 183, 255, 0.06);
 }
 
+table.openmic-table tr {
+  scroll-margin-top: 90px;
+}
+
+table.openmic-table tr.openmic-highlight td {
+  background: rgba(232, 193, 90, 0.28);
+  transition: background 0.3s ease;
+}
+
 table.openmic-table td.last-verified {
   color: #5b7fa6;
   font-style: italic;
