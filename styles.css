@@ -265,6 +265,11 @@
   background: rgba(232, 193, 90, 0.07);
 }
 
+.cal-day.has-mics {
+  border-color: rgba(185, 138, 255, 0.4);
+  background: rgba(185, 138, 255, 0.06);
+}
+
 .cal-daynum {
   font-size: 0.8rem;
   color: #5b7fa6;
@@ -273,6 +278,11 @@
 
 .cal-day.has-shows .cal-daynum {
   color: #e8c15a;
+  font-weight: 600;
+}
+
+.cal-day.has-mics .cal-daynum {
+  color: #b98aff;
   font-weight: 600;
 }
 
@@ -295,6 +305,51 @@
   color: #1c1204 !important;
 }
 
+.cal-mic {
+  display: block;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+  background: rgba(185, 138, 255, 0.16);
+  color: #e3d2ff !important;
+  text-decoration: none !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+a.cal-mic:hover {
+  background: rgba(185, 138, 255, 0.4);
+  color: #1c1204 !important;
+}
+
+.cal-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #a9c3de;
+  margin: 0.5rem 0 2rem 0;
+}
+
+.cal-legend-swatch {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 2px;
+  margin-right: 0.3rem;
+}
+
+.cal-legend-show {
+  background: rgba(111, 183, 255, 0.6);
+}
+
+.cal-legend-mic {
+  background: rgba(185, 138, 255, 0.7);
+}
+
 @media (max-width: 700px) {
   .cal-grid {
     min-width: 560px;
@@ -304,7 +359,8 @@
     min-height: 76px;
     padding: 0.3rem;
   }
-  .cal-show {
+  .cal-show,
+  .cal-mic {
     font-size: 0.72rem;
   }
 }
