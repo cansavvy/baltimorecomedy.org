@@ -47,9 +47,9 @@ from datetime import datetime, date
 # and sheets exist. Leave a value as None to skip that section (it will
 # be left untouched / shown as "pending" on the site).
 
-SHOWS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDB_QGh0L4oqe0jUFl-jvxoObctjaM2cwD4dsqtPvFJ2HBHEPggAIXCe297jxK0Dr7jvUMslWehRCL/pub?output=csv"  # "Add a Show" response sheet, published as CSV
-COMEDIANS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTXiMDWyDOFeYXxdOX6KVpzMOu3yeszvBt0oQ7HlupDRuKJnWF8apg7wpYh-sPUjVBkeIcxUFBp2u4r/pub?output=csv"  # "Add a Comedian" response sheet, published as CSV
-OPENMICS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSAxpZ6jerNNfwdMnqPX3rrTN6WQ-kKOmEplH2OGiUH384XWFLB9i6-WDMXM4GzMvSlIJkjBtknnZ1Q/pub?output=csv"
+SHOWS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDB_QGh0L4oqe0jUFl-jvxoObctjaM2cwD4dsqtPvFJ2HBHEPggAIXCe297jxK0Dr7jvUMslWehRCL/pub?output=csv"    # "Add a Show" response sheet, published as CSV
+COMEDIANS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTXiMDWyDOFeYXxdOX6KVpzMOu3yeszvBt0oQ7HlupDRuKJnWF8apg7wpYh-sPUjVBkeIcxUFBp2u4r/pub?output=csv"    # "Add a Comedian" response sheet, published as CSV
+OPENMICS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSAxpZ6jerNNfwdMnqPX3rrTN6WQ-kKOmEplH2OGiUH384XWFLB9i6-WDMXM4GzMvSlIJkjBtknnZ1Q/pub?output=csv"     # Open mic listing sheet, published as CSV
 
 # Eventbrite organizer pages to pull events from automatically, e.g.:
 #   "https://www.eventbrite.com/o/119257059441"
@@ -60,7 +60,7 @@ EVENTBRITE_ORGANIZER_URLS: list[str] = [
     "https://www.eventbrite.com/o/5340822879",
     "https://www.eventbrite.com/o/32042122709",
     "https://www.eventbrite.com/o/119257059441",
-    "https://www.eventbrite.com/o/18445769829",
+    "https://www.eventbrite.com/o/18445769829"
 ]
 
 OUTPUT_DIR = "_generated"
@@ -84,31 +84,24 @@ def fetch_csv_rows(url: str, header_hint: str = None) -> list[dict]:
     if header_hint:
         all_rows = list(csv.reader(io.StringIO(raw)))
         header_idx = next(
-            (
-                i
-                for i, row in enumerate(all_rows)
-                if any(cell.strip().lower() == header_hint.lower() for cell in row)
-            ),
+            (i for i, row in enumerate(all_rows)
+             if any(cell.strip().lower() == header_hint.lower() for cell in row)),
             None,
         )
         if header_idx is not None:
             headers = [h.strip() for h in all_rows[header_idx]]
             return [
                 {
-                    (headers[i] if i < len(headers) and headers[i] else f"col_{i}"): (
-                        cell or ""
-                    ).strip()
+                    (headers[i] if i < len(headers) and headers[i] else f"col_{i}"): (cell or "").strip()
                     for i, cell in enumerate(row)
                 }
-                for row in all_rows[header_idx + 1 :]
+                for row in all_rows[header_idx + 1:]
             ]
         # header_hint not found anywhere — fall through to the plain
         # row-1-is-the-header behavior below rather than fail outright.
 
     reader = csv.DictReader(io.StringIO(raw))
-    return [
-        {(k or "").strip(): (v or "").strip() for k, v in row.items()} for row in reader
-    ]
+    return [{(k or "").strip(): (v or "").strip() for k, v in row.items()} for row in reader]
 
 
 def is_approved(row: dict) -> bool:
@@ -143,7 +136,6 @@ def parse_date_safe(value: str):
 
 # --------------------------- SHOWS ---------------------------
 
-
 def normalize_form_rows(rows: list[dict]) -> list[dict]:
     """Turn approved Shows-form rows into the common normalized shape
     used by build_shows_content(). Rows flagged "Is this an Open Mic?" =
@@ -156,21 +148,15 @@ def normalize_form_rows(rows: list[dict]) -> list[dict]:
         recurring = r.get(
             "Is this a recurring show? If so, how frequently? Weekly? Monthly?", ""
         ).strip()
-        tag = (
-            recurring
-            if recurring and recurring.lower() not in ("no", "n/a", "none", "")
-            else ""
-        )
-        out.append(
-            {
-                "name": r.get("Show name", "").strip() or "Untitled Show",
-                "venue": r.get("Venue", "").strip(),
-                "date": parse_date_safe(r.get("Date", "")),
-                "link": r.get("Link to where folks can buy tickets", "").strip() or "#",
-                "tag": tag,
-                "source": "form",
-            }
-        )
+        tag = recurring if recurring and recurring.lower() not in ("no", "n/a", "none", "") else ""
+        out.append({
+            "name": r.get("Show name", "").strip() or "Untitled Show",
+            "venue": r.get("Venue", "").strip(),
+            "date": parse_date_safe(r.get("Date", "")),
+            "link": r.get("Link to where folks can buy tickets", "").strip() or "#",
+            "tag": tag,
+            "source": "form",
+        })
     return out
 
 
@@ -188,13 +174,11 @@ def extract_start_raw(node: dict):
     ]
     start_node = node.get("start")
     if isinstance(start_node, dict):
-        candidates.extend(
-            [
-                start_node.get("utc"),
-                start_node.get("local"),
-                start_node.get("date"),
-            ]
-        )
+        candidates.extend([
+            start_node.get("utc"),
+            start_node.get("local"),
+            start_node.get("date"),
+        ])
     elif isinstance(start_node, str):
         candidates.append(start_node)
     for c in candidates:
@@ -288,11 +272,7 @@ def fetch_eventbrite_organizer_events(organizer_url: str) -> list[dict]:
                 if url not in found:
                     start_raw = extract_start_raw(node)
                     venue = ""
-                    v = (
-                        node.get("venue")
-                        or node.get("primary_venue")
-                        or node.get("location")
-                    )
+                    v = node.get("venue") or node.get("primary_venue") or node.get("location")
                     if isinstance(v, dict):
                         venue = v.get("name", "") or ""
                     elif isinstance(v, str):
@@ -322,8 +302,7 @@ def fetch_eventbrite_organizer_events(organizer_url: str) -> list[dict]:
         print("\n  [eventbrite debug] raw keys on first matched event node:")
         print(" ", sorted(raw_samples[0].keys()))
         date_like = {
-            k: v
-            for k, v in raw_samples[0].items()
+            k: v for k, v in raw_samples[0].items()
             if any(w in k.lower() for w in ("date", "start", "time"))
         }
         print("  [eventbrite debug] date-ish fields on that node:", date_like)
@@ -406,7 +385,7 @@ def build_shows_content(events: list[dict], openmic_entries: list[dict] = None) 
                 mo = 1
                 y += 1
 
-    for year, month in sorted(months_needed):
+    for (year, month) in sorted(months_needed):
         by_day: dict = {}
         for e in dated:
             if e["date"].year == year and e["date"].month == month:
@@ -591,18 +570,14 @@ def build_comedians_content(rows: list[dict]) -> str:
 
     for r in approved:
         name = escape_html(r.get("Stage Name", "").strip() or "Unnamed")
-        tag = escape_html(
-            r.get("Comedic Style (short sentence descriptor)", "").strip()
-        )
+        tag = escape_html(r.get("Comedic Style (short sentence descriptor)", "").strip())
         bio = ""  # this form doesn't currently collect a separate bio field
         # Try Drive hotlinking first (see resolve_comedian_photo), then a
         # manual "Photo Filename" override, then the placeholder image.
         photo = resolve_comedian_photo(r)
 
         lines.append('<div class="comedian-card">')
-        lines.append(
-            f'<img class="comedian-photo" src="{escape_html(photo)}" alt="{name}" loading="lazy" onerror="this.onerror=null;this.src=\'images/placeholder-headshot.svg\';">'
-        )
+        lines.append(f'<img class="comedian-photo" src="{escape_html(photo)}" alt="{name}" loading="lazy" onerror="this.onerror=null;this.src=\'images/placeholder-headshot.svg\';">')
         lines.append(f'<div class="comedian-name">{name}</div>')
         if tag:
             lines.append(f'<div class="comedian-tag">{tag}</div>')
@@ -612,9 +587,7 @@ def build_comedians_content(rows: list[dict]) -> str:
         for field, label in SOCIAL_FIELDS:
             url = r.get(field, "").strip()
             if url:
-                lines.append(
-                    f'<a href="{escape_html(url)}" target="_blank">{label}</a>'
-                )
+                lines.append(f'<a href="{escape_html(url)}" target="_blank">{label}</a>')
         lines.append("</div>")
         lines.append("</div>\n")
 
@@ -623,7 +596,6 @@ def build_comedians_content(rows: list[dict]) -> str:
 
 
 # --------------------------- OPEN MICS ---------------------------
-
 
 def build_submitted_openmics_content(shows_rows: list[dict]) -> str:
     """
@@ -634,7 +606,9 @@ def build_submitted_openmics_content(shows_rows: list[dict]) -> str:
     submitted = [r for r in shows_rows if is_approved(r) and is_open_mic(r)]
 
     if not submitted:
-        return "<!-- no community-submitted open mics yet -->\n"
+        return (
+            "<!-- no community-submitted open mics yet -->\n"
+        )
 
     lines = [
         "<!--",
@@ -660,15 +634,9 @@ def build_submitted_openmics_content(shows_rows: list[dict]) -> str:
         recurring = r.get(
             "Is this a recurring show? If so, how frequently? Weekly? Monthly?", ""
         ).strip()
-        when_label = (
-            f"{recurring} ({when})"
-            if recurring and when
-            else (recurring or when or "—")
-        )
+        when_label = f"{recurring} ({when})" if recurring and when else (recurring or when or "—")
         link = r.get("Link to where folks can buy tickets", "").strip()
-        contact = (
-            f'<a href="{escape_html(link)}" target="_blank">link</a>' if link else "—"
-        )
+        contact = f'<a href="{escape_html(link)}" target="_blank">link</a>' if link else "—"
         submitted_date = date.today().strftime("%Y-%m-%d")
 
         lines.append(
@@ -687,30 +655,15 @@ def build_submitted_openmics_content(shows_rows: list[dict]) -> str:
 
 
 WEEKDAY_LOOKUP = {
-    "MONDAY": 0,
-    "MONDAYS": 0,
-    "TUESDAY": 1,
-    "TUESDAYS": 1,
-    "WEDNESDAY": 2,
-    "WEDNESDAYS": 2,
-    "THURSDAY": 3,
-    "THURSDAYS": 3,
-    "FRIDAY": 4,
-    "FRIDAYS": 4,
-    "SATURDAY": 5,
-    "SATURDAYS": 5,
-    "SUNDAY": 6,
-    "SUNDAYS": 6,
+    "MONDAY": 0, "MONDAYS": 0,
+    "TUESDAY": 1, "TUESDAYS": 1,
+    "WEDNESDAY": 2, "WEDNESDAYS": 2,
+    "THURSDAY": 3, "THURSDAYS": 3,
+    "FRIDAY": 4, "FRIDAYS": 4,
+    "SATURDAY": 5, "SATURDAYS": 5,
+    "SUNDAY": 6, "SUNDAYS": 6,
 }
-WEEKDAY_DISPLAY = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
-]
+WEEKDAY_DISPLAY = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 
 def pick_field(row: dict, *candidates):
@@ -750,16 +703,11 @@ def resolve_openmic_link(raw: str) -> str:
 
 
 ORDINAL_WORDS = {
-    "1st": 1,
-    "first": 1,
-    "2nd": 2,
-    "second": 2,
-    "3rd": 3,
-    "third": 3,
-    "4th": 4,
-    "fourth": 4,
-    "5th": 5,
-    "fifth": 5,
+    "1st": 1, "first": 1,
+    "2nd": 2, "second": 2,
+    "3rd": 3, "third": 3,
+    "4th": 4, "fourth": 4,
+    "5th": 5, "fifth": 5,
     "last": -1,
 }
 
@@ -778,11 +726,7 @@ def parse_month_occurrences(text: str):
     if not text:
         return None
     lowered = text.lower()
-    found = {
-        num
-        for word, num in ORDINAL_WORDS.items()
-        if re.search(rf"\b{re.escape(word)}\b", lowered)
-    }
+    found = {num for word, num in ORDINAL_WORDS.items() if re.search(rf"\b{re.escape(word)}\b", lowered)}
     return sorted(found) if found else None
 
 
@@ -792,13 +736,9 @@ def mic_occurs_on_day(mic: dict, day_num: int, days_in_month: int) -> bool:
     occurrences = mic.get("occurrences")
     if not occurrences:
         return True  # no specific pattern found -> assume every week
-    occurrence_of_this_day = (
-        day_num - 1
-    ) // 7 + 1  # 1st, 2nd, 3rd... of that weekday this month
+    occurrence_of_this_day = (day_num - 1) // 7 + 1  # 1st, 2nd, 3rd... of that weekday this month
     is_last_occurrence = day_num + 7 > days_in_month
-    return occurrence_of_this_day in occurrences or (
-        -1 in occurrences and is_last_occurrence
-    )
+    return occurrence_of_this_day in occurrences or (-1 in occurrences and is_last_occurrence)
 
 
 def extract_openmic_entries(rows: list[dict]) -> list[dict]:
@@ -839,20 +779,18 @@ def extract_openmic_entries(rows: list[dict]) -> list[dict]:
 
         notes = pick_field(row, "Notes/Details", "Notes", "Details")
         raw_link = pick_field(row, "Link", "Website", "Instagram")
-        entries.append(
-            {
-                "name": name.strip(),
-                "venue": pick_field(row, "Venue", "Location", "Place", "Address"),
-                "time": pick_field(row, "Time"),
-                "weekday": weekday,
-                "occurrences": parse_month_occurrences(notes),
-                "notes": notes,
-                "signup": pick_field(row, "Sign-up", "Sign Up", "How to Sign Up"),
-                "cost": pick_field(row, "Cost", "Price"),
-                "last_verified": pick_field(row, "Last Verified", "Last Checked"),
-                "link": resolve_openmic_link(raw_link),
-            }
-        )
+        entries.append({
+            "name": name.strip(),
+            "venue": pick_field(row, "Venue", "Location", "Place", "Address"),
+            "time": pick_field(row, "Time"),
+            "weekday": weekday,
+            "occurrences": parse_month_occurrences(notes),
+            "notes": notes,
+            "signup": pick_field(row, "Sign-up", "Sign Up", "How to Sign Up"),
+            "cost": pick_field(row, "Cost", "Price"),
+            "last_verified": pick_field(row, "Last Verified", "Last Checked"),
+            "link": resolve_openmic_link(raw_link),
+        })
 
     return entries
 
@@ -891,22 +829,13 @@ def build_openmics_content(rows: list[dict]) -> str:
         name = escape_html(e["name"])
         venue = escape_html(e["venue"])
         day_name = WEEKDAY_DISPLAY[e["weekday"]] if e["weekday"] is not None else ""
-        when = (
-            escape_html(
-                " ".join(part for part in [day_name, e["time"]] if part).strip()
-            )
-            or "—"
-        )
+        when = escape_html(" ".join(part for part in [day_name, e["time"]] if part).strip()) or "—"
         signup = escape_html(e["signup"])
         cost = escape_html(e["cost"]) or "—"
         last_verified = escape_html(e["last_verified"]) or today_str
 
         link = e["link"]
-        name_cell = (
-            f'<a href="{escape_html(link)}" target="_blank">{name}</a>'
-            if link
-            else name
-        )
+        name_cell = f'<a href="{escape_html(link)}" target="_blank">{name}</a>' if link else name
 
         lines.append(
             "<tr>"
@@ -924,7 +853,6 @@ def build_openmics_content(rows: list[dict]) -> str:
 
 
 # --------------------------- MAIN ---------------------------
-
 
 def write_file(path: str, content: str):
     with open(path, "w", encoding="utf-8") as f:
@@ -949,12 +877,10 @@ def main():
     if SHOWS_CSV_URL or EVENTBRITE_ORGANIZER_URLS or OPENMICS_CSV_URL:
         try:
             form_rows = fetch_csv_rows(SHOWS_CSV_URL) if SHOWS_CSV_URL else []
-            combined_events = normalize_form_rows(
-                form_rows
-            ) + fetch_all_eventbrite_events(EVENTBRITE_ORGANIZER_URLS)
-            openmic_entries = (
-                extract_openmic_entries(openmic_rows) if openmic_rows else []
+            combined_events = normalize_form_rows(form_rows) + fetch_all_eventbrite_events(
+                EVENTBRITE_ORGANIZER_URLS
             )
+            openmic_entries = extract_openmic_entries(openmic_rows) if openmic_rows else []
             write_file(
                 f"{OUTPUT_DIR}/shows-content.qmd",
                 build_shows_content(combined_events, openmic_entries),
@@ -966,38 +892,24 @@ def main():
                 )
             any_run = True
         except Exception as e:
-            print(
-                f"[shows] FAILED, leaving existing shows-content.qmd untouched: {e}",
-                file=sys.stderr,
-            )
+            print(f"[shows] FAILED, leaving existing shows-content.qmd untouched: {e}", file=sys.stderr)
             had_failure = True
 
     if COMEDIANS_CSV_URL:
         try:
             rows = fetch_csv_rows(COMEDIANS_CSV_URL)
-            write_file(
-                f"{OUTPUT_DIR}/comedians-content.qmd", build_comedians_content(rows)
-            )
+            write_file(f"{OUTPUT_DIR}/comedians-content.qmd", build_comedians_content(rows))
             any_run = True
         except Exception as e:
-            print(
-                f"[comedians] FAILED, leaving existing comedians-content.qmd untouched: {e}",
-                file=sys.stderr,
-            )
+            print(f"[comedians] FAILED, leaving existing comedians-content.qmd untouched: {e}", file=sys.stderr)
             had_failure = True
 
     if OPENMICS_CSV_URL:
         try:
-            write_file(
-                f"{OUTPUT_DIR}/openmics-content.qmd",
-                build_openmics_content(openmic_rows),
-            )
+            write_file(f"{OUTPUT_DIR}/openmics-content.qmd", build_openmics_content(openmic_rows))
             any_run = True
         except Exception as e:
-            print(
-                f"[openmics] FAILED to build page content, leaving existing openmics-content.qmd untouched: {e}",
-                file=sys.stderr,
-            )
+            print(f"[openmics] FAILED to build page content, leaving existing openmics-content.qmd untouched: {e}", file=sys.stderr)
             had_failure = True
 
     if not any_run and not had_failure:
@@ -1020,10 +932,7 @@ def main():
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--debug-eventbrite":
         if len(sys.argv) < 3:
-            print(
-                "Usage: python3 generate_content.py --debug-eventbrite <organizer_url>",
-                file=sys.stderr,
-            )
+            print("Usage: python3 generate_content.py --debug-eventbrite <organizer_url>", file=sys.stderr)
             sys.exit(1)
         test_url = sys.argv[2]
         print(f"Fetching {test_url} ...")
@@ -1040,16 +949,11 @@ if __name__ == "__main__":
         else:
             print(f"\nExtracted {len(events)} event(s):\n")
             for e in events:
-                print(
-                    f"  - {e['name']!r} | venue={e['venue']!r} | date={e['date']} | {e['link']}"
-                )
+                print(f"  - {e['name']!r} | venue={e['venue']!r} | date={e['date']} | {e['link']}")
 
     elif len(sys.argv) > 1 and sys.argv[1] == "--debug-openmics":
         if not OPENMICS_CSV_URL:
-            print(
-                "OPENMICS_CSV_URL is not set at the top of this script — nothing to fetch.",
-                file=sys.stderr,
-            )
+            print("OPENMICS_CSV_URL is not set at the top of this script — nothing to fetch.", file=sys.stderr)
             sys.exit(1)
         print(f"Fetching {OPENMICS_CSV_URL} ...\n")
         try:
@@ -1062,37 +966,25 @@ if __name__ == "__main__":
         if rows:
             print(f"Column headers found: {list(rows[0].keys())}\n")
         else:
-            print(
-                "The sheet came back completely empty — check the URL and that it's published as CSV.\n"
-            )
+            print("The sheet came back completely empty — check the URL and that it's published as CSV.\n")
 
         entries = extract_openmic_entries(rows)
         with_weekday = [e for e in entries if e["weekday"] is not None]
         without_weekday = [e for e in entries if e["weekday"] is None]
 
-        print(
-            f"Parsed {len(entries)} mic entr{'y' if len(entries) == 1 else 'ies'} total."
-        )
-        print(
-            f"  -> {len(with_weekday)} resolved to a specific weekday (these WILL show on the calendar)"
-        )
-        print(
-            f"  -> {len(without_weekday)} did NOT resolve to a weekday (these will NOT show on the calendar)\n"
-        )
+        print(f"Parsed {len(entries)} mic entr{'y' if len(entries)==1 else 'ies'} total.")
+        print(f"  -> {len(with_weekday)} resolved to a specific weekday (these WILL show on the calendar)")
+        print(f"  -> {len(without_weekday)} did NOT resolve to a weekday (these will NOT show on the calendar)\n")
 
         if with_weekday:
             print("Entries that resolved correctly (first 10 shown):")
             for e in with_weekday[:10]:
-                occ = (
-                    f", occurrences={e['occurrences']}" if e.get("occurrences") else ""
-                )
+                occ = f", occurrences={e['occurrences']}" if e.get("occurrences") else ""
                 print(f"  - {e['name']!r} -> {WEEKDAY_DISPLAY[e['weekday']]}{occ}")
             print()
 
         if without_weekday:
-            print(
-                "Entries that did NOT resolve a weekday (first 10 shown) — these are why mics are missing:"
-            )
+            print("Entries that did NOT resolve a weekday (first 10 shown) — these are why mics are missing:")
             for e in without_weekday[:10]:
                 print(f"  - {e['name']!r} (venue={e['venue']!r})")
             print()
