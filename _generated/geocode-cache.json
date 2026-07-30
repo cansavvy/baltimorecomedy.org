@@ -12,6 +12,7 @@
     39.2108409,
     -76.8641847
   ],
+  "Bel Air Games, 2442 E Churchville Rd, Bel Air, MD": null,
   "Benny's Pub, 49 Eastern Blvd N, Hagerstown": null,
   "Bill's Liquor Bar, 1688 Annapolis Rd, Odenton, MD": null,
   "Birdies Cafe, 233 E Main St, Westminster, MD": null,
@@ -27,8 +28,14 @@
   ],
   "Charlie's Pizza, 15855 Redland Rd, Rockville, MD": null,
   "Church of Satire, 106 Broadway Hanover, PA": null,
+  "Clipper City Barber Co, 1716 Thames St, Baltimore, MD": null,
+  "Da Arthouse, 1115 W 36th St, Baltimore, MD": null,
+  "Delizia Cafe, 14 E Patrick St, Frederick, MD": null,
   "Docs by the Clock, 400 W Lombard St, Baltimore, MD": null,
+  "Dynasty Event Hall, \"6515 Bel Air Road\", Baltimore, MD": null,
   "Dynasty Event Hall, 6515 Bel Air Road, Baltimore, MD": null,
+  "Emilio's Brick Oven Pizza, 22207 Shaw Rd, Sterling, VA": null,
+  "FLOCK, 1415 Washington Blvd, Baltimore": null,
   "Fallston Barrel House, 2403 Belair Rd, Fallston, MD": null,
   "Fat Bat Brewing Co, 10 N Railroad St, Hanover, PA": [
     39.8013645,
@@ -49,8 +56,13 @@
   "HBG Comedy Zone, 110 Limekiln Rd, New Cumberland": null,
   "HMAC, 1110 N 3rd St, Harrisburg, PA": null,
   "HammerJokes CC, 9306 Harford Rd, Parkville, MD": null,
+  "Heavy Seas brewery, 4615 Hollins Ferry Rd, Halethorpe": [
+    39.2320796,
+    -76.6758041
+  ],
   "Home Slyce Pizza, 9400 Snowden River Pkwy": null,
   "Ink's Tattoo Shop, 119 W Saratoga St, Baltimore, MD": null,
+  "Kenwood Tavern, 800 S Kenwood Ave, Baltimore": null,
   "Le Fantome Food Hall, 4501 Woodberry St, Riverdale": null,
   "M8 BEER, 1399 S Sharp St, Baltimore": null,
   "Max's Taphouse, 737 S Broadway, Baltimore, MD": null,
@@ -80,6 +92,10 @@
     38.9881645,
     -76.9447202
   ],
+  "Terra Cafe, 101 E 25th St, Baltimore, MD": [
+    39.317737,
+    -76.6152268
+  ],
   "The Artemis, 3605 14th St NW, Washington, DC": [
     38.9364195,
     -77.0324099
@@ -98,6 +114,7 @@
   "The Manor, 924 North Charles St, Baltimore": null,
   "The Port Comedy Club, 813 S Broadway, Baltimore, MD": null,
   "The Port Comedy Club, 813 S Broadway, Baltimore, MD 2": null,
+  "The Roadhouse Cafe, 1031 Eisenhower Blvd, Harrisburg": null,
   "The Simple Bar, 5802 Georgia Ave NW, DC": null,
   "The Spot Bar, 255 N Washington St, Rockville, MD": [
     39.0871548,
@@ -107,6 +124,7 @@
     39.5505795,
     -76.0900504
   ],
+  "The Vox Lounge, 228 N Market St, Frederick, MD": null,
   "West York Inn, 1400 W Market St, York, PA": null,
   "Wit's End Saloon, 9603 Deereco Rd, Timonium, MD": null,
   "Zenobia's Hookah Lounge, 500 W Patrick St fl 2, Frederick": null

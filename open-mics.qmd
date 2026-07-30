@@ -10,9 +10,7 @@ file — see README.md -> "How updates work."
 -->
 
 ::: {.aside-note}
-Sign-ups happen at the venue. Confirm before you drive — schedules and
-hosts can change. This list is maintained by **mo_noor_lol**; corrections
-and additions go through them directly.
+This list is maintained by @mo_noor_lol and @maxagoodman. Thanks to them for allowing me to share it here .
 :::
 
 {{< include _generated/openmics-content.qmd >}}
