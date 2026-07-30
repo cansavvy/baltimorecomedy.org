@@ -2,6 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://baltimorecomedy.org/submit.html</loc>
+<<<<<<< HEAD
     <lastmod>2026-07-29T15:48:00.000Z</lastmod>
   </url>
   <url>
@@ -19,5 +20,24 @@
   <url>
     <loc>https://baltimorecomedy.org/shows.html</loc>
     <lastmod>2026-07-30T20:59:00.000Z</lastmod>
+=======
+    <lastmod>2026-07-30T18:07:20.021Z</lastmod>
+  </url>
+  <url>
+    <loc>https://baltimorecomedy.org/open-mics.html</loc>
+    <lastmod>2026-07-30T18:07:20.021Z</lastmod>
+  </url>
+  <url>
+    <loc>https://baltimorecomedy.org/comedians.html</loc>
+    <lastmod>2026-07-30T18:07:20.015Z</lastmod>
+  </url>
+  <url>
+    <loc>https://baltimorecomedy.org/index.html</loc>
+    <lastmod>2026-07-30T18:07:20.021Z</lastmod>
+  </url>
+  <url>
+    <loc>https://baltimorecomedy.org/shows.html</loc>
+    <lastmod>2026-07-30T18:07:20.021Z</lastmod>
+>>>>>>> origin/main
   </url>
 </urlset>
