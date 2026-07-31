@@ -1,4 +1,194 @@
 {
+  "\"6515 Bel Air Road\", Baltimore, MD": null,
+  "1031 Eisenhower Blvd, Harrisburg": [
+    40.2226288,
+    -76.792215
+  ],
+  "106 Broadway Hanover, PA": [
+    39.8012306,
+    -76.9824585
+  ],
+  "110 Limekiln Rd, New Cumberland": [
+    40.2152885,
+    -76.8796106
+  ],
+  "1104 Ingleside Ave, Baltimore, MD": [
+    39.2933714,
+    -76.730962
+  ],
+  "1110 N 3rd St, Harrisburg, PA": [
+    40.2680613,
+    -76.8883103
+  ],
+  "1115 W 36th St, Baltimore, MD": [
+    39.3308259,
+    -76.6342993
+  ],
+  "1186 Nanticoke St Baltimore, MD": [
+    39.2802573,
+    -76.6318699
+  ],
+  "119 W Saratoga St, Baltimore, MD": [
+    39.2927543,
+    -76.6173688
+  ],
+  "120 W 25th St, Baltimore, MD": [
+    39.3179146,
+    -76.6191315
+  ],
+  "120 W North Ave, Baltimore, MD": [
+    39.3113403,
+    -76.6189024
+  ],
+  "121 W Frederick St, Millersville": [
+    39.996503,
+    -76.3598824
+  ],
+  "1236 Light St, Baltimore, MD": [
+    39.2751037,
+    -76.6123063
+  ],
+  "1399 S Sharp St, Baltimore": [
+    39.274512,
+    -76.620339
+  ],
+  "14 E Patrick St, Frederick, MD": [
+    39.4139211,
+    -77.4102643
+  ],
+  "1400 W Market St, York, PA": [
+    39.953558,
+    -76.759271
+  ],
+  "1415 Washington Blvd, Baltimore": [
+    39.2792382,
+    -76.636906
+  ],
+  "15855 Redland Rd, Rockville, MD": null,
+  "1606 Thames St, Baltimore, MD": [
+    39.2811911,
+    -76.5947713
+  ],
+  "16143 Shady Grove Rd, Gaithersburg": [
+    39.1132852,
+    -77.1866554
+  ],
+  "1688 Annapolis Rd, Odenton, MD": [
+    39.1088753,
+    -76.7237597
+  ],
+  "1716 Thames St, Baltimore, MD": [
+    39.2820367,
+    -76.5919652
+  ],
+  "1727 N Charles St, Baltimore, MD": [
+    39.3090978,
+    -76.6163154
+  ],
+  "209 N Market St, Frederick, MD": [
+    39.4168275,
+    -77.4107655
+  ],
+  "22207 Shaw Rd, Sterling, VA": [
+    39.0020283,
+    -77.433292
+  ],
+  "228 N Market St, Frederick, MD": [
+    39.4172578,
+    -77.410258
+  ],
+  "233 E Main St, Westminster, MD": [
+    39.5688918,
+    -76.9892635
+  ],
+  "2403 Belair Rd, Fallston, MD": [
+    39.4956358,
+    -76.3904254
+  ],
+  "2442 E Churchville Rd, Bel Air, MD": [
+    39.5391841,
+    -76.3357462
+  ],
+  "2736 Crain Hwy, Waldorf, MD": [
+    38.636919,
+    -76.899612
+  ],
+  "32 Market Pl, Baltimore, MD": [
+    39.289598,
+    -76.6072569
+  ],
+  "3600 Hickory Ave, Baltimore, MD": [
+    39.3312305,
+    -76.6339767
+  ],
+  "400 W Lombard St, Baltimore, MD": [
+    39.2876143,
+    -76.6212646
+  ],
+  "4501 Woodberry St, Riverdale": [
+    38.9705013,
+    -76.9367358
+  ],
+  "49 Eastern Blvd N, Hagerstown": [
+    39.6342891,
+    -77.6978089
+  ],
+  "500 W Patrick St fl 2, Frederick": null,
+  "5802 Georgia Ave NW, DC": [
+    38.9602692,
+    -77.0283944
+  ],
+  "6001 Belair Rd, Baltimore, MD": [
+    39.3473897,
+    -76.5386603
+  ],
+  "6515 Bel Air Road, Baltimore, MD": null,
+  "701 S Broadway, Baltimore, MD": [
+    39.2833551,
+    -76.5930154
+  ],
+  "737 S Broadway, Baltimore, MD": [
+    39.2826583,
+    -76.5929627
+  ],
+  "800 S Kenwood Ave, Baltimore": [
+    39.2830522,
+    -76.5772611
+  ],
+  "813 S Broadway, Baltimore, MD": [
+    39.2822149,
+    -76.5926928
+  ],
+  "813 S Broadway, Baltimore, MD 2": null,
+  "819 E Pratt St, Baltimore, MD": [
+    39.2868563,
+    -76.6043127
+  ],
+  "8850 Stanford Blvd, Columbia, MD": [
+    39.1904426,
+    -76.8152421
+  ],
+  "917 Cathedral St, Baltimore, MD": [
+    39.3006209,
+    -76.6171074
+  ],
+  "924 North Charles St, Baltimore": [
+    39.3004532,
+    -76.6162265
+  ],
+  "9306 Harford Rd, Parkville, MD": [
+    39.3917983,
+    -76.5277484
+  ],
+  "9400 Snowden River Pkwy": [
+    39.1764199,
+    -76.8375667
+  ],
+  "9603 Deereco Rd, Timonium, MD": null,
+  "9712 Traville Gateway Dr, Rockville, MD": [
+    39.0916838,
+    -77.2041649
+  ],
   "Anegada Delights, 9861 Broken Land Pkwy, Columbia": [
     39.1833246,
     -76.8510612
@@ -26,12 +216,20 @@
     39.4154881,
     -77.410512
   ],
+  "Charlie's Pizza": [
+    45.5166573,
+    12.1880603
+  ],
   "Charlie's Pizza, 15855 Redland Rd, Rockville, MD": null,
   "Church of Satire, 106 Broadway Hanover, PA": null,
   "Clipper City Barber Co, 1716 Thames St, Baltimore, MD": null,
   "Da Arthouse, 1115 W 36th St, Baltimore, MD": null,
   "Delizia Cafe, 14 E Patrick St, Frederick, MD": null,
   "Docs by the Clock, 400 W Lombard St, Baltimore, MD": null,
+  "Dynasty Event Hall": [
+    24.8243199,
+    67.0354584
+  ],
   "Dynasty Event Hall, \"6515 Bel Air Road\", Baltimore, MD": null,
   "Dynasty Event Hall, 6515 Bel Air Road, Baltimore, MD": null,
   "Emilio's Brick Oven Pizza, 22207 Shaw Rd, Sterling, VA": null,
@@ -112,6 +310,7 @@
   ],
   "The Hub Sports Bar, 6001 Belair Rd, Baltimore, MD": null,
   "The Manor, 924 North Charles St, Baltimore": null,
+  "The Port Comedy Club": null,
   "The Port Comedy Club, 813 S Broadway, Baltimore, MD": null,
   "The Port Comedy Club, 813 S Broadway, Baltimore, MD 2": null,
   "The Roadhouse Cafe, 1031 Eisenhower Blvd, Harrisburg": null,
@@ -126,6 +325,11 @@
   ],
   "The Vox Lounge, 228 N Market St, Frederick, MD": null,
   "West York Inn, 1400 W Market St, York, PA": null,
+  "Wit's End Saloon": [
+    39.4531245,
+    -76.6411578
+  ],
   "Wit's End Saloon, 9603 Deereco Rd, Timonium, MD": null,
+  "Zenobia's Hookah Lounge": null,
   "Zenobia's Hookah Lounge, 500 W Patrick St fl 2, Frederick": null
 }

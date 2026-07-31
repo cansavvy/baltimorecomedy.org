@@ -39,7 +39,6 @@ import json
 import os
 import re
 import sys
-import time
 import urllib.parse
 import urllib.request
 from datetime import datetime, date
@@ -862,6 +861,16 @@ def build_openmics_content(rows: list[dict]) -> str:
         notes = escape_html(e["notes"]) or "—"
         last_verified = escape_html(e["last_verified"]) or today_str
 
+        # Link the venue straight to a Google Maps search for its
+        # address — no geocoding, no API key, just a URL. Falls back to
+        # the venue name alone if there's no separate street address.
+        map_query = ", ".join(part for part in [e.get("venue", ""), e.get("address", "")] if part) or e.get("address", "")
+        if map_query:
+            maps_url = "https://www.google.com/maps/search/?api=1&query=" + urllib.parse.quote(map_query)
+            venue_cell = f'<a href="{maps_url}" target="_blank">{venue}</a>' if venue else f'<a href="{maps_url}" target="_blank">Map</a>'
+        else:
+            venue_cell = venue or "—"
+
         # Contact: primary link (Instagram/website) plus a secondary
         # contact (the sheet's "Other" column) if there is one and it's
         # not just a duplicate of the primary.
@@ -881,7 +890,7 @@ def build_openmics_content(rows: list[dict]) -> str:
         lines.append(
             f'<tr id="{row_id}">'
             f"<td>{name}</td>"
-            f"<td>{venue}</td>"
+            f"<td>{venue_cell}</td>"
             f"<td>{when}</td>"
             f"<td>{contact_cell}</td>"
             f"<td>{notes}</td>"
@@ -891,151 +900,6 @@ def build_openmics_content(rows: list[dict]) -> str:
 
     lines.append("</tbody></table></div>")
     return "\n".join(lines)
-
-
-# --------------------------- MAP ---------------------------
-
-GEOCODE_CACHE_PATH = f"{OUTPUT_DIR}/geocode-cache.json"
-MAX_NEW_GEOCODES_PER_RUN = 60  # safety valve; leftovers just get picked up next run
-
-
-def load_geocode_cache() -> dict:
-    try:
-        with open(GEOCODE_CACHE_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {}
-
-
-def save_geocode_cache(cache: dict):
-    with open(GEOCODE_CACHE_PATH, "w", encoding="utf-8") as f:
-        json.dump(cache, f, indent=2, sort_keys=True)
-
-
-def geocode_address(query: str):
-    """
-    Look up [lat, lng] for a free-text address using OpenStreetMap's
-    Nominatim — free, no API key, but their usage policy requires: max
-    ~1 request/second, and a descriptive User-Agent identifying the app
-    (both handled below). Returns None if nothing was found or the
-    request failed, rather than raising — a single bad address shouldn't
-    break the whole map.
-    """
-    url = "https://nominatim.openstreetmap.org/search?" + urllib.parse.urlencode({
-        "q": query, "format": "json", "limit": 1,
-    })
-    req = urllib.request.Request(url, headers={
-        "User-Agent": "BaltimoreComedyMapBot/1.0 (contact: candyscomedybaltimore@gmail.com)"
-    })
-    try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        if data:
-            return [float(data[0]["lat"]), float(data[0]["lon"])]
-    except Exception as e:
-        print(f"  [geocode] failed for {query!r}: {e}", file=sys.stderr)
-    return None
-
-
-def build_geocode_candidates(venue: str, address: str) -> list[str]:
-    """
-    Nominatim's free-form search often fails outright when a query
-    combines an unlisted business name with a street address in one
-    string — rather than gracefully ignoring the part it doesn't
-    recognize, it just returns nothing. Try a few query shapes, most
-    specific first, falling back to plainer ones:
-      1. "Venue, Address" (best when the venue itself is a known POI)
-      2. "Address" alone (most reliable for a real street address)
-      3. "Venue" alone (helps if the address is missing or malformed)
-    """
-    venue = (venue or "").strip()
-    address = (address or "").strip()
-    candidates = []
-    if venue and address:
-        candidates.append(f"{venue}, {address}")
-    if address:
-        candidates.append(address)
-    if venue:
-        candidates.append(venue)
-    seen = set()
-    out = []
-    for c in candidates:
-        if c and c not in seen:
-            seen.add(c)
-            out.append(c)
-    return out
-
-
-def geocode_with_fallback(venue: str, address: str, cache: dict, budget: dict):
-    """
-    Tries build_geocode_candidates() in order, using/populating the
-    shared cache dict, stopping at the first query that resolves.
-    `budget` is a mutable {"remaining": N} shared across calls so the
-    per-run safety cap applies across ALL candidate attempts, not per
-    entry. Returns (coords_or_None, used_query_or_None).
-    """
-    for query in build_geocode_candidates(venue, address):
-        if query in cache:
-            coords = cache[query]
-        elif budget["remaining"] <= 0:
-            continue  # cap hit; leave ungeocoded for next run
-        else:
-            coords = geocode_address(query)
-            cache[query] = coords
-            budget["remaining"] -= 1
-            budget["new_lookups"] += 1
-            time.sleep(1.1)  # respect Nominatim's ~1 req/sec rate limit
-        if coords:
-            return coords, query
-    return None, None
-
-
-def build_map_data(entries: list[dict]) -> str:
-    """
-    Geocodes each mic's venue/address (using a cache on disk so repeat
-    runs only look up NEW addresses, not all of them every time — this
-    is also the caching behavior Nominatim's own usage policy asks for)
-    and returns a Quarto-includable fragment: a <script> tag defining
-    window.BC_MIC_LOCATIONS for the map page to plot.
-    """
-    cache = load_geocode_cache()
-    budget = {"remaining": MAX_NEW_GEOCODES_PER_RUN, "new_lookups": 0}
-    points = []
-
-    for e in entries:
-        venue = (e.get("venue") or "").strip()
-        address = (e.get("address") or "").strip()
-        if not venue and not address:
-            continue
-
-        coords, _used_query = geocode_with_fallback(venue, address, cache, budget)
-
-        if coords:
-            points.append({
-                "name": e.get("name", ""),
-                "venue": venue,
-                "lat": coords[0],
-                "lng": coords[1],
-                "weekday_name": WEEKDAY_DISPLAY[e["weekday"]] if e.get("weekday") is not None else "",
-                "time": e.get("time", ""),
-                "link": f"open-mics.qmd#{e.get('slug', '')}",
-            })
-
-    if budget["new_lookups"]:
-        save_geocode_cache(cache)
-        print(f"  [geocode] {budget['new_lookups']} new address(es) looked up and cached")
-
-    payload = json.dumps(points, indent=2)
-    return (
-        "<!--\n"
-        "AUTO-GENERATED FILE — DO NOT HAND-EDIT\n"
-        "Regenerated by scripts/generate_content.py. Geocoded coordinates\n"
-        f"are cached in {GEOCODE_CACHE_PATH} so repeat runs only look up\n"
-        "NEW addresses.\n"
-        f"Last generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
-        "-->\n\n"
-        f'<script>\nwindow.BC_MIC_LOCATIONS = {payload};\n</script>\n'
-    )
 
 
 # --------------------------- MAIN ---------------------------
@@ -1096,14 +960,6 @@ def main():
             any_run = True
         except Exception as e:
             print(f"[openmics] FAILED to build page content, leaving existing openmics-content.qmd untouched: {e}", file=sys.stderr)
-            had_failure = True
-
-        try:
-            entries_for_map = extract_openmic_entries(openmic_rows) if openmic_rows else []
-            write_file(f"{OUTPUT_DIR}/openmics-map.qmd", build_map_data(entries_for_map))
-            any_run = True
-        except Exception as e:
-            print(f"[map] FAILED to build map data, leaving existing openmics-map.qmd untouched: {e}", file=sys.stderr)
             had_failure = True
 
     if not any_run and not had_failure:
@@ -1187,30 +1043,6 @@ if __name__ == "__main__":
         print("First 10 raw rows exactly as read from the sheet, for inspection:")
         for r in rows[:10]:
             print(" ", dict(r))
-
-    elif len(sys.argv) > 1 and sys.argv[1] == "--debug-geocode":
-        if not OPENMICS_CSV_URL:
-            print("OPENMICS_CSV_URL is not set at the top of this script — nothing to fetch.", file=sys.stderr)
-            sys.exit(1)
-        n = int(sys.argv[2]) if len(sys.argv) > 2 else 5
-        print(f"Fetching {OPENMICS_CSV_URL} ...")
-        rows = fetch_csv_rows(OPENMICS_CSV_URL, header_hint="Name")
-        entries = extract_openmic_entries(rows)
-        print(f"Geocoding the first {n} of {len(entries)} mic(s), not using the cache, showing each fallback attempt:\n")
-        for e in entries[:n]:
-            candidates = build_geocode_candidates(e.get("venue", ""), e.get("address", ""))
-            print(f"  {e['name']!r}")
-            found = False
-            for query in candidates:
-                coords = geocode_address(query)
-                print(f"    try {query!r} -> {coords}")
-                time.sleep(1.1)
-                if coords:
-                    found = True
-                    break
-            if not found:
-                print("    (none of the fallback queries resolved)")
-            print()
 
     else:
         main()

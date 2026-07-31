@@ -1,0 +1,21 @@
+---
+title: ""
+page-layout: full
+---
+
+::: {.hero}
+# What is <span style="color:#ede3cc;">BaltimoreComedy.org</span>?
+
+<div class="gold-rule"></div>
+
+:::
+
+Baltimore Comedy.org is a free, centralized platform connecting Baltimore-area comedy audiences with comedians, shows, and open mics. It operates on a principle of open access and minimal gatekeeping: any comedian or show can be listed, submissions are reviewed for basic completeness rather than curated by taste, and the platform does not manage or represent talent.
+
+The underlying premise: Baltimore's local comedians are as talented as anyone appearing on a Netflix special or HBO special. What they lack isn't skill, it's the marketing budget and institutional backing that comes with a corporate deal. Baltimore Comedy.org's model is built around that gap: since the platform can't out-spend a studio's marketing budget, it competes by out-organizing — pooling audience attention and community support in one place instead of leaving each comedian to build an audience alone.
+
+B'more is stronger together.
+
+<div style="text-align:center; margin-top:2rem;">
+<a class="cta-button" href="submit.qmd">Add Your Show or Profile →</a>
+</div>

@@ -28,6 +28,8 @@ website:
         text: Open Mics
       - href: submit.qmd
         text: Get Listed
+      - href: about.qmd
+        text: About
   page-footer:
     background: "#05070d"
     foreground: "#5b7fa6"
@@ -44,3 +46,4 @@ format:
     fontsize: 1.05rem
     linkcolor: "#6fb7ff"
     mainfont: "Source Sans 3"
+    include-after-body: team-toggle.html

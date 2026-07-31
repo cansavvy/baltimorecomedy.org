@@ -1,3 +1,30 @@
+/* ===== Team color toggle ===== */
+
+:root {
+  --accent-rgb: 111, 183, 255; /* default: the site's usual blue */
+}
+
+body.theme-ravens {
+  --accent-rgb: 157, 78, 221; /* Ravens purple */
+}
+
+body.theme-orioles {
+  --accent-rgb: 255, 107, 26; /* Orioles orange */
+}
+
+/* Headings and default paragraph links get their color from the
+   compiled Bootstrap theme (a fixed hex baked in at build time), not
+   from this file — these two rules let the toggle reach them too.
+   Anything more specific elsewhere (buttons, nav, muted table text,
+   etc.) already has its own !important color and is unaffected. */
+h1, h2, h3, h4, h5, h6 {
+  color: rgb(var(--accent-rgb));
+}
+
+a:not(.cta-button) {
+  color: rgb(var(--accent-rgb));
+}
+
 /* ===== Layout helpers ===== */
 
 .hero {
@@ -52,8 +79,8 @@
   position: relative;
   overflow: hidden;
   padding: 0.65rem 1.6rem;
-  border: 1px solid #6fb7ff;
-  color: #6fb7ff !important;
+  border: 1px solid rgb(var(--accent-rgb));
+  color: rgb(var(--accent-rgb)) !important;
   border-radius: 2px;
   text-decoration: none !important;
   letter-spacing: 0.08em;
@@ -63,7 +90,7 @@
 }
 
 .cta-button:hover {
-  background: #6fb7ff;
+  background: rgb(var(--accent-rgb));
   color: #05070d !important;
 }
 
@@ -125,7 +152,7 @@
   height: 140px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #6fb7ff;
+  border: 2px solid rgb(var(--accent-rgb));
   margin: 0 auto 1rem auto;
   display: block;
   background: #0a0f1a;
@@ -133,7 +160,7 @@
 
 .comedian-name {
   font-family: "Source Serif 4", serif;
-  color: #6fb7ff;
+  color: rgb(var(--accent-rgb));
   font-size: 1.3rem;
   margin: 0.25rem 0 0.15rem 0;
 }
@@ -166,14 +193,14 @@
   color: #a9c3de !important;
   opacity: 0.9;
   text-decoration: underline !important;
-  text-decoration-color: rgba(111, 183, 255, 0.35) !important;
+  text-decoration-color: rgba(var(--accent-rgb), 0.35) !important;
   text-underline-offset: 3px;
 }
 
 .social-links a:hover {
-  color: #6fb7ff !important;
+  color: rgb(var(--accent-rgb)) !important;
   opacity: 1;
-  text-decoration-color: #6fb7ff !important;
+  text-decoration-color: rgb(var(--accent-rgb)) !important;
 }
 
 /* ===== Shows list ===== */
@@ -199,11 +226,11 @@
   font-size: 1.2rem;
   color: #dbe6f5 !important;
   text-decoration: none !important;
-  border-bottom: 1px solid rgba(111,183,255,0.5);
+  border-bottom: 1px solid rgba(var(--accent-rgb), 0.5);
 }
 
 .show-item .show-name a:hover {
-  color: #6fb7ff !important;
+  color: rgb(var(--accent-rgb)) !important;
 }
 
 .show-item .show-date {
@@ -215,7 +242,7 @@
 .show-month-heading {
   color: #1c3f6e;
   background: none;
-  -webkit-text-stroke: 0.5px #6fb7ff;
+  -webkit-text-stroke: 0.5px rgb(var(--accent-rgb));
   margin-top: 2.5rem;
 }
 
@@ -236,7 +263,7 @@
 .cal-dow {
   text-align: center;
   font-family: "Source Serif 4", serif;
-  color: #6fb7ff;
+  color: rgb(var(--accent-rgb));
   font-size: 0.8rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -272,7 +299,7 @@
   line-height: 1.25;
   padding: 0.15rem 0.35rem;
   border-radius: 3px;
-  background: rgba(111, 183, 255, 0.14);
+  background: rgba(var(--accent-rgb), 0.14);
   color: #dbe6f5 !important;
   text-decoration: none !important;
   white-space: nowrap;
@@ -323,7 +350,7 @@ a.cal-mic:hover {
 }
 
 .cal-legend-show {
-  background: rgba(111, 183, 255, 0.6);
+  background: rgba(var(--accent-rgb), 0.6);
 }
 
 .cal-legend-mic {
@@ -418,7 +445,7 @@ table.openmic-table caption {
 
 table.openmic-table th {
   background: rgba(28, 63, 110, 0.25);
-  color: #6fb7ff;
+  color: rgb(var(--accent-rgb));
   font-family: "Source Serif 4", serif;
   font-weight: 600;
   text-align: left;
@@ -435,7 +462,7 @@ table.openmic-table td {
 }
 
 table.openmic-table tr:hover td {
-  background: rgba(111, 183, 255, 0.06);
+  background: rgba(var(--accent-rgb), 0.06);
 }
 
 table.openmic-table tr {
@@ -454,7 +481,7 @@ table.openmic-table td.last-verified {
 }
 
 table.openmic-table a {
-  color: #6fb7ff;
+  color: rgb(var(--accent-rgb));
 }
 
 /* ===== Submit page ===== */

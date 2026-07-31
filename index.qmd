@@ -16,21 +16,16 @@ page-layout: full
 
 ::: {.grid}
 
-::: {.g-col-4}
+::: {.g-col-6}
 ### 🎤 Find Shows
 Open mics, showcases, and one-off specials around the city, listed with
 dates.
 :::
 
-::: {.g-col-4}
+::: {.g-col-6}
 ### 🎭 Find Comedians
 A growing roster of Baltimore-area comics, with bios and links to their
 socials.
-:::
-
-::: {.g-col-4}
-### 📋 Get Listed
-Running a show or want your profile added? Submit it through the form and it'll go up once it's reviewed.
 :::
 
 :::

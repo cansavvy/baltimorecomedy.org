@@ -1,0 +1,21 @@
+<div id="bc-team-toggle" style="position: fixed; bottom: 16px; right: 16px; z-index: 1000; display: flex; gap: 0.5rem;">
+  <button onclick="bcSetTeamTheme('ravens')" title="Ravens purple"
+    style="width: 34px; height: 34px; border-radius: 50%; border: 2px solid #9D4EDD; background: #9D4EDD; cursor: pointer; opacity: 0.9;"></button>
+  <button onclick="bcSetTeamTheme('orioles')" title="Orioles orange"
+    style="width: 34px; height: 34px; border-radius: 50%; border: 2px solid #FF6B1A; background: #FF6B1A; cursor: pointer; opacity: 0.9;"></button>
+  <button onclick="bcSetTeamTheme('default')" title="Reset to default"
+    style="width: 34px; height: 34px; border-radius: 50%; border: 2px solid #6fb7ff; background: #05070d; cursor: pointer; opacity: 0.9;"></button>
+</div>
+
+<script>
+function bcSetTeamTheme(team) {
+  document.body.classList.remove("theme-ravens", "theme-orioles");
+  if (team === "ravens") document.body.classList.add("theme-ravens");
+  if (team === "orioles") document.body.classList.add("theme-orioles");
+  localStorage.setItem("bcTeamTheme", team);
+}
+(function() {
+  var saved = localStorage.getItem("bcTeamTheme");
+  if (saved) bcSetTeamTheme(saved);
+})();
+</script>
