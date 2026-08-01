@@ -10,12 +10,94 @@ page-layout: full
 
 :::
 
-Baltimore Comedy.org is a free, centralized platform connecting Baltimore-area comedy audiences with comedians, shows, and open mics. It operates on a principle of open access and minimal gatekeeping: any comedian or show can be listed, submissions are reviewed for basic completeness rather than curated by taste, and the platform does not manage or represent talent.
+## Purpose 
 
-The underlying premise: Baltimore's local comedians are as talented as anyone appearing on a Netflix special or HBO special. What they lack isn't skill, it's the marketing budget and institutional backing that comes with a corporate deal. Baltimore Comedy.org's model is built around that gap: since the platform can't out-spend a studio's marketing budget, it competes by out-organizing — pooling audience attention and community support in one place instead of leaving each comedian to build an audience alone.
+Baltimore Comedy.org is a free, centralized platform connecting Baltimore-area comedy audiences with comedians, shows, and open mics. It operates on a principle of open access and minimal gatekeeping: any comedian or show can be listed. 
 
-B'more is stronger together.
+Baltimore's local comedians are as talented as anyone appearing on a Netflix special or HBO special. What they lack isn't skill, it's the marketing budget and institutional backing that comes with a corporate deal. Baltimore Comedy.org's model is built around that gap: since the platform can't out-spend a studio's marketing budget, it competes by out-organizing — pooling audience attention and community support in one place instead of leaving each comedian to build an audience alone. 
+
+Baltimore is stronger _together_. 
+
+# How to Participate — For Comedians
+
+BaltimoreComedy.org is free, open to anyone, and not run by relationships
+or favorites — here's exactly how to get involved, in three steps you
+can do in any order.
+
+---
+
+## 1. Get Listed
+
+This is the baseline — it's what makes you findable at all.
+
+**What it gets you:** a profile on the Comedians page (bio, style,
+socials) and your shows on the calendar, all searchable by anyone
+looking for local comedy.
+
+**How:** fill out the Add a Comedian form and/or Add a Show form at
+[BaltimoreComedy.org/submit](https://baltimorecomedy.org/submit.qmd).
+Takes a minute or two.
+
+**What happens after:** every submission gets reviewed before it goes
+live — not for "is this funny," just for basic completeness (real
+links, working info, you're a real person). Once approved, it's up.
 
 <div style="text-align:center; margin-top:2rem;">
-<a class="cta-button" href="submit.qmd">Add Your Show or Profile →</a>
+<a class="cta-button" href="submit.qmd">Add Your Comedian Profile →</a>
 </div>
+
+---
+
+## 2. Send a Hype Clip
+
+Once you're listed, you can DM a short video hyping up the Baltimore
+comedy scene — we'll publish it under Baltimore Comedy.org's own
+branding and promote it through our channels.
+
+**What makes a good clip:** it doesn't have to be a produced ad. A
+phone video works. The strongest ones tend to follow a simple shape:
+
+1. **A hook** — a punchy line or question about Baltimore or comedy in
+   the first couple seconds
+2. **The clip** — your bit, or you talking about the scene
+3. **A quick mention of BaltimoreComedy.org** at the end
+
+**The one unfortunate hard rule:** F-words and slurs have to be bleeped in
+anything published under our branding. This isn't a judgment on your
+material or your right to reclaim language used against you — we totally support
+that for you. It's specifically that this content goes out under our name, on 
+feeds we don't control who's scrolling. If there's language that needs bleeping, 
+send the clip and we'll handle it, or send a version already edited.
+
+**How:** DM the clip to
+[@baltimore_comedy_org](https://instagram.com/baltimore_comedy_org)
+on Instagram.
+
+---
+
+## 3. Get Auto-Reposted Going Forward
+
+Once you've sent one hype clip, you're on the list — tag
+**@baltimore_comedy_org** on any future event posts and we'll
+automatically repost them. No re-submitting, no waiting on review. 
+The only requirement: the event must take place within an hour's drive
+of Baltimore. 
+
+---
+
+## A Few Things Worth Knowing
+
+- **None of this is pay-to-play.** Every step above is free (in dollar amounts, but not in time), and being
+  listed or reposted doesn't depend on follower count, how funny a
+  reviewer personally finds you, or any relationship with the page.
+- **Style is wide open.** Stand-up, improv, sketch, crowd work,
+  first-timer or headliner — all welcome. We're not curating for a
+  "type" of comedy.
+- **You can always ask for something taken down.** If a clip you sent
+  ever needs to come down, just ask — no explanation required.
+
+---
+
+*Questions about any of this? Reach out to
+candyscomedybaltimore@gmail.com or DM @baltimore_comedy_org on insta*
+
