@@ -13,7 +13,15 @@ file — see README.md -> "How updates work."
 The core of this list is maintained by @mo_noor_lol and @maxagoodman. Thanks to them for allowing me to share it here. Accessibility column added separately, please email candyscomedybaltimore@gmail.com with any corrections or updates. 
 :::
 
+<div style="max-width: 420px; margin: 0 auto 1.5rem auto;">
+<input type="text" id="openmic-search" class="site-search-input" placeholder="Search by name, venue, or day…" oninput="bcFilterOpenMics()">
+</div>
+
 {{< include _generated/openmics-content.qmd >}}
+
+<p id="openmic-no-results" class="aside-note" style="display:none; text-align:center;">
+No open mics match that search.
+</p>
 
 {{< include _generated/openmics-submitted.qmd >}}
 
@@ -40,4 +48,19 @@ function bcHighlightMicRow() {
 }
 document.addEventListener("DOMContentLoaded", bcHighlightMicRow);
 window.addEventListener("hashchange", bcHighlightMicRow);
+
+function bcFilterOpenMics() {
+  var query = document.getElementById("openmic-search").value.trim().toLowerCase();
+  var rows = document.querySelectorAll("table.openmic-table tbody tr");
+  var visibleCount = 0;
+  rows.forEach(function(row) {
+    var match = row.textContent.toLowerCase().indexOf(query) !== -1;
+    row.style.display = match ? "" : "none";
+    if (match) visibleCount++;
+  });
+  var noResults = document.getElementById("openmic-no-results");
+  if (noResults) {
+    noResults.style.display = (rows.length > 0 && visibleCount === 0) ? "block" : "none";
+  }
+}
 </script>

@@ -378,6 +378,29 @@ body.hide-mics .cal-legend-mic-item {
   }
 }
 
+/* ===== Search inputs ===== */
+
+.site-search-input {
+  width: 100%;
+  padding: 0.6rem 1rem;
+  background: rgba(28, 63, 110, 0.1);
+  border: 1px solid rgba(91, 127, 166, 0.4);
+  border-radius: 20px;
+  color: #dbe6f5;
+  font-size: 0.95rem;
+  font-family: "Source Sans 3", sans-serif;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.site-search-input::placeholder {
+  color: #5b7fa6;
+}
+
+.site-search-input:focus {
+  border-color: rgb(var(--accent-rgb));
+}
+
 /* ===== Callout / funny asides ===== */
 
 .aside-note {

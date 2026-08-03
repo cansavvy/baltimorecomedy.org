@@ -10,10 +10,37 @@ don't edit this file — use the form, or edit the source sheet and mark
 the row Approved. See README.md -> "How updates work."
 -->
 
-Comedians are in alphabetical order. 
+::: {.aside-note}
+Comedians listed here are independent performers, not employees, contractors, or representatives of Baltimore Comedy.org. This site helps you find them — it isn't a party to any booking, and isn't responsible for their conduct, availability, or any arrangement you make with them directly.
+:::
+
+<div style="max-width: 420px; margin: 0 auto 2rem auto;">
+<input type="text" id="comedian-search" class="site-search-input" placeholder="Search by name or style…" oninput="bcFilterComedians()">
+</div>
 
 {{< include _generated/comedians-content.qmd >}}
 
+<p id="comedian-no-results" class="aside-note" style="display:none; text-align:center;">
+No comedians match that search.
+</p>
+
 <div style="text-align:center; margin-top:1rem;">
-<a class="cta-button" href="https://docs.google.com/forms/d/e/1FAIpQLSeSXTsm0ZPKhsOazYwbnB2wswHIKQYlUbTOpoNsyQGEZiIvXA/viewform">Not listed yet? Add yourself →</a>
+<a class="cta-button" href="submit.qmd">Not listed yet? Add yourself →</a>
 </div>
+
+<script>
+function bcFilterComedians() {
+  var query = document.getElementById("comedian-search").value.trim().toLowerCase();
+  var cards = document.querySelectorAll(".comedian-card");
+  var visibleCount = 0;
+  cards.forEach(function(card) {
+    var match = card.textContent.toLowerCase().indexOf(query) !== -1;
+    card.style.display = match ? "" : "none";
+    if (match) visibleCount++;
+  });
+  var noResults = document.getElementById("comedian-no-results");
+  if (noResults) {
+    noResults.style.display = (cards.length > 0 && visibleCount === 0) ? "block" : "none";
+  }
+}
+</script>
