@@ -1,6 +1,6 @@
 ---
 title: "Open Mics"
-subtitle: "Weekly open mics across Baltimore, Southern PA & Central Maryland"
+subtitle: "Weekly open mics within an hour of Baltimore"
 ---
 
 <!--
@@ -10,7 +10,7 @@ file — see README.md -> "How updates work."
 -->
 
 ::: {.aside-note}
-This list is maintained by @mo_noor_lol and @maxagoodman. Thanks to them for allowing me to share it here .
+The core of this list is maintained by @mo_noor_lol and @maxagoodman. Thanks to them for allowing me to share it here. Accessibility column added separately, please email candyscomedybaltimore@gmail.com with any corrections or updates. 
 :::
 
 {{< include _generated/openmics-content.qmd >}}
@@ -20,6 +20,13 @@ This list is maintained by @mo_noor_lol and @maxagoodman. Thanks to them for all
 <div style="text-align:center; margin-top:2rem;">
 <a class="cta-button" href="submit.qmd">Know a mic that's missing? →</a>
 </div>
+
+::: {.aside-note}
+Have more questions about wheelchair accessibility at a specific venue?
+Hover a badge above for a quick note, or see the full sourced research
+notes for every venue in
+[this spreadsheet](https://docs.google.com/spreadsheets/d/1YPzNTj1Qk50UyutI2YLxbLmHn7Pum6zO8nONxnHGt2s/edit?gid=1785766944#gid=1785766944).
+:::
 
 <script>
 function bcHighlightMicRow() {

@@ -484,6 +484,48 @@ table.openmic-table a {
   color: rgb(var(--accent-rgb));
 }
 
+/* ===== Accessibility badges ===== */
+
+.access-badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.access-confirmed {
+  background: rgba(90, 200, 130, 0.16);
+  border-color: rgba(90, 200, 130, 0.5);
+  color: #7fe0a3;
+}
+
+.access-likely {
+  background: rgba(232, 193, 90, 0.14);
+  border-color: rgba(232, 193, 90, 0.45);
+  color: #e8c15a;
+}
+
+.access-unknown {
+  background: rgba(91, 127, 166, 0.14);
+  border-color: rgba(91, 127, 166, 0.4);
+  color: #a9c3de;
+}
+
+.access-no {
+  background: rgba(224, 90, 90, 0.14);
+  border-color: rgba(224, 90, 90, 0.45);
+  color: #e88a8a;
+}
+
+.access-legend {
+  font-size: 0.85rem;
+  color: #a9c3de;
+  margin: 0.75rem 0 2rem 0;
+  line-height: 1.8;
+}
+
 /* ===== Submit page ===== */
 
 .form-embed-wrap {
