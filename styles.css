@@ -203,6 +203,91 @@ a:not(.cta-button) {
   text-decoration-color: rgb(var(--accent-rgb)) !important;
 }
 
+/* ===== Media (podcasts, books, etc.) ===== */
+
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1.75rem;
+  margin: 2rem 0;
+}
+
+.media-card {
+  background: linear-gradient(180deg, rgba(28,63,110,0.12), rgba(5,7,13,0.4));
+  border: 1px solid rgba(91, 127, 166, 0.35);
+  border-radius: 4px;
+  padding: 1.25rem;
+  text-align: center;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.media-card:hover {
+  transform: translateY(-4px);
+  border-color: #e8c15a;
+  box-shadow: 0 4px 18px rgba(232, 193, 90, 0.15);
+}
+
+.media-cover {
+  width: 160px;
+  height: 160px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid rgba(91, 127, 166, 0.4);
+  margin: 0 auto 0.85rem auto;
+  display: block;
+  background: #0a0f1a;
+}
+
+.media-type-badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  border: 1px solid transparent;
+}
+
+.media-type-podcast {
+  background: rgba(111, 183, 255, 0.14);
+  border-color: rgba(111, 183, 255, 0.4);
+  color: #6fb7ff;
+}
+
+.media-type-book {
+  background: rgba(232, 193, 90, 0.14);
+  border-color: rgba(232, 193, 90, 0.4);
+  color: #e8c15a;
+}
+
+.media-type-other {
+  background: rgba(185, 138, 255, 0.14);
+  border-color: rgba(185, 138, 255, 0.4);
+  color: #b98aff;
+}
+
+.media-title {
+  font-family: "Source Serif 4", serif;
+  color: #dbe6f5;
+  font-size: 1.2rem;
+  margin: 0.15rem 0;
+}
+
+.media-creator {
+  color: #5b7fa6;
+  font-style: italic;
+  font-size: 0.9rem;
+  margin-bottom: 0.6rem;
+}
+
+.media-description {
+  font-size: 0.95rem;
+  color: #dbe6f5;
+  opacity: 0.9;
+  margin-bottom: 0.85rem;
+}
+
 /* ===== Shows list ===== */
 
 .show-list {

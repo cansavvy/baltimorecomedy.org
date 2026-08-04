@@ -1,0 +1,48 @@
+---
+title: "Podcasts, Books & Media"
+subtitle: "Baltimore comedy beyond the stage"
+---
+
+<!--
+This page's grid is auto-generated from the "Add a Podcast/Book/Media"
+Google Form responses (see /submit.qmd and FORM-SPEC.md). To add or
+edit an entry, don't edit this file — use the form, or edit the source
+sheet and mark the row Approved. See README.md -> "How updates work."
+-->
+
+::: {.aside-note}
+Independent work by Baltimore-area comedians — podcasts, books, and
+anything else that doesn't fit on a stage. Not curated by taste, same
+as everything else on this site.
+:::
+
+<div style="max-width: 420px; margin: 0 auto 2rem auto;">
+<input type="text" id="media-search" class="site-search-input" placeholder="Search by title or creator…" oninput="bcFilterMedia()">
+</div>
+
+{{< include _generated/media-content.qmd >}}
+
+<p id="media-no-results" class="aside-note" style="display:none; text-align:center;">
+Nothing matches that search.
+</p>
+
+<div style="text-align:center; margin-top:1rem;">
+<a class="cta-button" href="submit.qmd">Have a podcast or book to add? →</a>
+</div>
+
+<script>
+function bcFilterMedia() {
+  var query = document.getElementById("media-search").value.trim().toLowerCase();
+  var cards = document.querySelectorAll(".media-card");
+  var visibleCount = 0;
+  cards.forEach(function(card) {
+    var match = card.textContent.toLowerCase().indexOf(query) !== -1;
+    card.style.display = match ? "" : "none";
+    if (match) visibleCount++;
+  });
+  var noResults = document.getElementById("media-no-results");
+  if (noResults) {
+    noResults.style.display = (cards.length > 0 && visibleCount === 0) ? "block" : "none";
+  }
+}
+</script>

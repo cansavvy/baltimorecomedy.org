@@ -26,6 +26,8 @@ website:
         text: Find Comedians
       - href: open-mics.qmd
         text: Open Mics
+      - href: media.qmd
+        text: Media
       - href: submit.qmd
         text: Get Listed
       - href: about.qmd

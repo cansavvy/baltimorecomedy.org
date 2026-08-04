@@ -1,11 +1,12 @@
 ---
 title: "Get Listed"
-subtitle: "Add your show or your comedian profile"
+subtitle: "Add your show, comedian profile, or media"
 ---
 
-Want your show or your profile on this site? Fill out the form below.
-Submissions don't go live automatically — every response gets reviewed
-first, and once it's approved it appears on the site on its own.
+Want your show, profile, podcast, or book on this site? Fill out a
+form below. Submissions don't go live automatically — every response
+gets reviewed first, and once it's approved it appears on the site on
+its own.
 
 <!--
 TO ACTIVATE THESE FORMS:
@@ -15,30 +16,25 @@ the Google Sheet columns lined up with what the site's automation expects).
 
 ## Add a Show
 
-<div class="form-embed-wrap" style="padding:0; background:none;">
-<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdaHkZrQ_O5sPXb7Du6b1QsJfwhlvF62RCtJ07fxGNpdwHiyA/viewform?embedded=true"
-  width="100%" height="900" frameborder="0" marginheight="0" marginwidth="0" style="border-radius:4px;">
-  Loading…
-</iframe>
+<div style="text-align:center; margin: 1.5rem 0;">
+<a class="cta-button filled" href="https://forms.gle/tpX8LZ5PQ1AAW4Se9" target="_blank">Add a Show Form →</a>
 </div>
 
 ## Add a Comedian Profile
 
-Google won't let us embed this one inline — forms with a photo upload
-question require the person filling it out to be signed into a Google
-account, and Google blocks embedding those in an iframe. It opens in its
-own tab instead.
-
 <div style="text-align:center; margin: 1.5rem 0;">
-<a class="cta-button filled" href="https://forms.gle/3m7YKsYXMsZRmUJXA" target="_blank">Open the Comedian Form →</a>
+<a class="cta-button filled" href="https://forms.gle/3m7YKsYXMsZRmUJXA" target="_blank">Add a Comedian Profile Form →</a>
 </div>
 
+## Add a Podcast, Book, or Other Media
+
+<div style="text-align:center; margin: 1.5rem 0;">
+<a class="cta-button filled" href="https://forms.gle/gRBM6zQadtPmqaXa9" target="_blank">Open the Media Form →</a>
+</div>
+
+
 ::: {.aside-note}
-No form yet, or the submission didn't go through? Email the details
+Submission didn't go through? Email the details
 straight to <a href="mailto:candyscomedybaltimore@gmail.com">candyscomedybaltimore@gmail.com</a>
 and it'll get added by hand.
 :::
-
-<div style="text-align:center; margin-top:2rem;">
-<a class="cta-button filled" href="mailto:candyscomedybaltimore@gmail.com">Email It In Instead →</a>
-</div>
