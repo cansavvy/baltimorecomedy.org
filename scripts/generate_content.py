@@ -360,7 +360,7 @@ def build_shows_content(events: list[dict], openmic_entries: list[dict] = None) 
     mics_by_weekday: dict = {}
     for m in openmic_entries:
         wd = m.get("weekday")
-        if wd is not None:
+        if wd is not None and not is_mic_paused(m.get("notes", "")):
             mics_by_weekday.setdefault(wd, []).append(m)
 
     dated = [e for e in events if e.get("date")]
@@ -899,23 +899,68 @@ ORDINAL_WORDS = {
     "last": -1,
 }
 
+BIWEEKLY_PATTERNS = [
+    r"every other",
+    r"bi-?weekly",
+    r"\b2x a month\b",
+    r"\btwice a month\b",
+]
+
+PAUSED_PATTERNS = [
+    r"\bhiatus\b",
+    r"\bpaused?\b",
+    r"\bon hold\b",
+    r"\btbd\b",
+    r"\bcancell?ed\b",
+    r"\bdiscontinued\b",
+]
+
+
+def is_mic_paused(text: str) -> bool:
+    """Notes like '(on hiatus) (TBD)' mean this mic isn't actually
+    running right now — it shouldn't show up as a recurring weekly
+    event on the calendar at all until it's back."""
+    if not text:
+        return False
+    lowered = text.lower()
+    return any(re.search(p, lowered) for p in PAUSED_PATTERNS)
+
 
 def parse_month_occurrences(text: str):
     """
-    Look for explicit "which week(s) of the month" language in a mic's
-    notes, e.g. "2nd Friday of the Month", "1st and 3rd Saturday",
-    "4th (4th) Sunday of Month". Returns a sorted list of occurrence
-    numbers (1=first, 2=second, 3=third, 4=fourth, -1=last) if found, or
-    None if the text doesn't specify — None is treated as "every week"
-    by the calendar (the safest default, since most mics in practice
-    are weekly; vaguer phrasing like "twice a month" without saying
-    which weeks can't be placed precisely and falls back to this).
+    Figure out which week(s) of the month a recurring mic actually
+    happens on, from its notes text. Three shapes of real-world
+    phrasing, checked in order:
+
+    1. Explicit ordinals — "2nd Friday of the Month", "1st and 3rd
+       Saturday", "4th (4th) Sunday of Month" — returns exactly those
+       occurrence numbers (1=first, 2=second, 3=third, 4=fourth,
+       -1=last).
+    2. "Every other [day]" / "bi-weekly" / "2x a month" / "twice a
+       month" with no specific weeks named — there's no way to know
+       from text alone whether that means odd or even weeks, so this
+       assumes the 1st and 3rd occurrence, the most common convention
+       for alternating-week schedules. Not guaranteed to match the
+       real schedule exactly (a true biweekly cycle drifts across
+       month boundaries in a way "1st and 3rd of the month" doesn't
+       perfectly replicate), but far closer than showing it every
+       single week.
+    3. Nothing recognizable — returns None, meaning "every week" (the
+       safe default for genuinely weekly mics, and the fallback for
+       anything too vague to place more precisely).
     """
     if not text:
         return None
     lowered = text.lower()
-    found = {num for word, num in ORDINAL_WORDS.items() if re.search(rf"\b{re.escape(word)}\b", lowered)}
-    return sorted(found) if found else None
+
+    explicit = {num for word, num in ORDINAL_WORDS.items() if re.search(rf"\b{re.escape(word)}\b", lowered)}
+    if explicit:
+        return sorted(explicit)
+
+    if any(re.search(p, lowered) for p in BIWEEKLY_PATTERNS):
+        return [1, 3]
+
+    return None
 
 
 def mic_occurs_on_day(mic: dict, day_num: int, days_in_month: int) -> bool:
