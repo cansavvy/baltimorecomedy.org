@@ -9,7 +9,7 @@ page-layout: full
 
 <p class="bco-hashtag">#baltimoreisfunny</p>
 
-# What is <span style="color:#ede3cc;">BaltimoreComedy.org</span>?
+# What is <span style="color:#ede3cc;">this</span>?
 
 <div class="gold-rule"></div>
 
@@ -17,21 +17,27 @@ page-layout: full
 
 ## Purpose 
 
-Baltimore Comedy.org is a free, centralized platform connecting Baltimore-area comedy audiences with comedians, shows, and open mics. It operates on a principle of open access and minimal gatekeeping: any comedian or show can be listed. 
+**Building community through comedy**
 
-Baltimore's local comedians are as talented as anyone appearing on a Netflix special or HBO special. What they lack isn't skill, it's the marketing budget and institutional backing that comes with a corporate deal. Baltimore Comedy.org's model is built around that gap: since the platform can't out-spend a studio's marketing budget, it competes by out-organizing — pooling audience attention and community support in one place instead of leaving each comedian to build an audience alone. 
+Comedy has the power to connect the community through laughter. Baltimore Comedy.org attempts to support the local comedians yielding this power. 
 
-Baltimore is stronger _together_. 
+This is a free, centralized platform connecting Baltimore-area comedy audiences with comedians, shows, and open mics. 
+
+Baltimore's local comedians are as talented as anyone appearing on a Netflix special or HBO special. Why haven't you heard of them then? It's because a local comedian does have the financial or administrative backing comparable to some Hollywood headliner. At BaltimoreComedy.org we attempt to meet this gap by using teamwork and community (It's incredibly corny but nonetheless). 
+
+Baltimore Comedy.org operates on a principle of open access and zero gatekeeping. Anyone in the Baltimore area who claims they participate in comedy can be listed. We don't care how new you are to the game as long as you share the values of building community connections through comedy. 
+
+We believe in Baltimore. 
 
 # How to Participate — For Comedians
 
-BaltimoreComedy.org is free, open to anyone, and not run by relationships
-or favorites — here's exactly how to get involved, in three steps you
-can do in any order.
+BaltimoreComedy.org is free, open to anyone, and zero gatekeeping involved. 
+
+You promote Baltimore Comedy.org community, we in turn promote you. 
 
 ---
 
-## 1. Get Listed
+## Step 1. Get Listed
 
 This is the baseline — it's what makes you findable at all.
 
@@ -44,8 +50,8 @@ looking for local comedy.
 Takes a minute or two.
 
 **What happens after:** every submission gets reviewed before it goes
-live — not for "is this comedian funny enough" just for basic completeness (real
-links, working info, you're a real person). Once approved, it's up.
+live — not for "is this comedian funny enough?" just for basic completeness (real
+links, working info, you're a real person). 
 
 <div style="text-align:center; margin-top:2rem;">
 <a class="cta-button" href="submit.qmd">Add Your Comedian Profile →</a>
@@ -53,56 +59,34 @@ links, working info, you're a real person). Once approved, it's up.
 
 ---
 
-## 2. Send a Hype Clip
+## Step 2. Send a Hype Clip
 
 Once you're listed, you can DM a short video hyping up the Baltimore
 comedy scene — we'll publish it under Baltimore Comedy.org's own
 branding and promote it through our channels.
 
-**What makes a good clip:** it doesn't have to be a produced ad. A
-phone video works. The strongest ones tend to follow a simple shape:
-
-1. **A hook** — a punchy line or question about Baltimore or comedy in
-   the first couple seconds
-2. **The clip** — your bit, or you talking about the scene
-3. **A quick mention of BaltimoreComedy.org** at the end
-
-**The one unfortunate hard rule:** F-words and slurs have to be bleeped in
-anything published under our branding. This isn't a judgment on your
-material or your right to reclaim language used against you — we totally support
-that for you. It's specifically that this content goes out under our name, on 
-feeds we don't control who's scrolling. If there's language that needs bleeping, 
-send the clip and we'll handle it, or send a version already edited.
-
-**How:** DM the clip to
+**What makes a good clip:** Right now we don't have money, so the bar is low.
+The video can be whatever you'd like it to be. But ideally it will showcase YOU and your comedy. 
+Lastly please end off with a plug about BaltimoreComedy.org. Or DM your video to
 [@baltimore_comedy_org](https://instagram.com/baltimore_comedy_org)
-on Instagram.
+on Instagram and we'll add the plug. 
 
 ---
 
 ## 3. Get Auto-Reposted Going Forward
 
-Once you've sent one hype clip, you're on the list — tag
+Once you've sent one hype clip, DM or tag
 **@baltimore_comedy_org** on any future event posts and we'll
-automatically repost them. No re-submitting, no waiting on review. 
-The only requirement: the event must take place within an hour's drive
+automatically repost them. But the event must take place within an hour's drive
 of Baltimore. 
 
 ---
 
-## A Few Things Worth Knowing
+#### Who is doing this? 
 
-- **None of this is pay-to-play.** Every step above is free (in dollar amounts, but not in time), and being
-  listed or reposted doesn't depend on follower count, how funny a
-  reviewer personally finds you, or any relationship with the page.
-- **Style is wide open.** Stand-up, improv, sketch, crowd work,
-  first-timer or headliner — all welcome. We're not curating for a
-  "type" of comedy.
-- **You can always ask for something taken down.** If a clip you sent
-  ever needs to come down, just ask — no explanation required.
-
+Candace (Candy) Savonen (candyscomedybaltimore@gmail.com) is the creator of BaltimoreComedy.org. She has run training programs, written grants, and is a working comedian. She has witnessed who gets stage time and who quietly stops showing up. Off stage, she is a data engineer and has built online courses for a living. She created and maintains OTTR (the course building tool). She has extensive experience in the non profit education space and has developed courses for the ITCR Training Network and Alex's Lemonade Stand Foundation, and worked on the curriculum at DataTrail, a Baltimore nonprofit that teaches data science to city youth. She also built and runs the BaltimoreComedy.org website. 
 ---
 
-*Questions about any of this? Reach out to
-candyscomedybaltimore@gmail.com or DM @baltimore_comedy_org on insta*
+*Questions about any of this? Interested in supporting us? 
+Reach out to candyscomedybaltimore@gmail.com or DM @baltimore_comedy_org on insta*
 
