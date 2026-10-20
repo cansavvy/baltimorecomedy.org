@@ -1,7 +1,7 @@
 /* ===== Team color toggle ===== */
 
 :root {
-  --accent-rgb: 111, 183, 255; /* default: the site's usual blue */
+  --accent-rgb: 140, 82, 255; /* default: BCO logo purple (#8c52ff) */
 }
 
 body.theme-ravens {
@@ -23,6 +23,27 @@ h1, h2, h3, h4, h5, h6 {
 
 a:not(.cta-button) {
   color: rgb(var(--accent-rgb));
+}
+
+/* ===== Navbar logo ===== */
+
+/* Quarto caps navbar logos at a small default height; the BCO logo
+   has text in it, so give it a bit more room and soften the white
+   square's corners so it sits nicely on the dark navbar. */
+.navbar-brand .navbar-logo {
+  max-height: 40px;
+  height: 40px;
+  width: auto;
+  padding: 0;          /* Quarto adds padding-right, which left the right corners square */
+  border-radius: 4px;
+  margin-right: 0.5rem;
+}
+
+@media (max-width: 991px) {
+  .navbar-brand .navbar-logo {
+    max-height: 34px;
+    height: 34px;
+  }
 }
 
 /* ===== Layout helpers ===== */
@@ -47,6 +68,35 @@ a:not(.cta-button) {
   opacity: 0.9;
   max-width: 640px;
   margin: 0.75rem auto 0 auto;
+}
+
+/* ===== Hero logo (home + about) =====
+   The logo SVG is transparent with cream letters, so it sits directly on
+   the starry background like a neon sign; it flickers on, then holds. */
+.hero-logo {
+  padding-top: 2.5rem;
+}
+
+.bco-logo {
+  display: block;
+  width: 300px;
+  max-width: 70vw;
+  height: auto;
+  margin: 0 auto;
+  filter: drop-shadow(0 0 10px rgba(140, 82, 255, 0.28));
+}
+
+.bco-hashtag {
+  margin: 1.1rem auto 0 auto;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 1.3rem;
+  font-style: italic;
+  letter-spacing: 0.05em;
+  color: rgb(var(--accent-rgb));
+}
+
+.hero-logo .gold-rule {
+  margin: 1.25rem auto 0 auto;
 }
 
 .gold-rule {

@@ -5,7 +5,7 @@ $black:        #05070d;
 $near-black:   #070b14;
 $deep-blue:    #0d1b33;
 $deep-blue-lt: #1c3f6e;
-$accent:       #6fb7ff;
+$accent:       #8c52ff; // BCO logo purple
 $accent-dim:   #5b7fa6;
 $offwhite:     #dbe6f5;
 $gold:         #e8c15a;
@@ -62,7 +62,7 @@ hr {
 }
 
 a {
-  text-decoration-color: rgba(111,183,255,0.4);
+  text-decoration-color: rgba(140,82,255,0.4);
 }
 a:hover {
   color: lighten($accent, 10%);

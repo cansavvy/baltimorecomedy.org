@@ -3,7 +3,12 @@ title: ""
 page-layout: full
 ---
 
-::: {.hero}
+::: {.hero .hero-logo}
+<img class="bco-logo" src="images/bco-logo-animated.svg"
+     alt="Baltimore Comedy .org" width="300" height="300">
+
+<p class="bco-hashtag">#baltimoreisfunny</p>
+
 # What is <span style="color:#ede3cc;">BaltimoreComedy.org</span>?
 
 <div class="gold-rule"></div>

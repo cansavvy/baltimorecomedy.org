@@ -6,6 +6,9 @@ project:
     - "!FORM-SPEC.md"
   resources:
     - CNAME
+    - images/bco-logo.svg
+    - images/bco-logo-animated.svg
+    - images/bco-logo-dark.svg
 
 website:
   title: ""
@@ -15,8 +18,9 @@ website:
   navbar:
     background: "#05070d"
     foreground: "#e8dcc3"
-    logo: images/logo-mark.svg
-    title: "BALTIMORE COMEDY"
+    logo: images/bco-logo.svg
+    logo-alt: "Baltimore Comedy .org logo"
+    title: false
     left:
       - href: index.qmd
         text: Home
@@ -46,6 +50,6 @@ format:
     grid:
       body-width: 1000px
     fontsize: 1.05rem
-    linkcolor: "#6fb7ff"
+    linkcolor: "#8c52ff"
     mainfont: "Source Sans 3"
     include-after-body: team-toggle.html
