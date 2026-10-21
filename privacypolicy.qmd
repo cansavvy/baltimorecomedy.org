@@ -1,0 +1,72 @@
+# BaltimoreComedy.org Email List Privacy Policy
+
+*Last updated: October 21, 2026*
+
+## Who we are
+
+We only use your email to send you BaltimoreComedy.org news, and we never sell it. BaltimoreComedy.org ("BCO," "we," "us") supports and promotes Baltimore's stand-up scene, with a focus on making open mics and shows inclusive for underserved comedians and audiences.
+
+This policy covers our email list: the newsletter, show and open mic updates, and program announcements you sign up for at baltimorecomedy.org or in person.
+
+## Information we collect
+
+We collect only what you give us when you sign up, plus basic email engagement data.
+
+- **Required:** your email address.
+- **Automatic:** the date you signed up, and whether you open emails or click links in them (see Email service provider and tracking).
+
+We don't ask for sensitive information like your birthday, payment details, or identity characteristics on the signup form.
+
+## How we use it
+
+We use your information only to run the email list. That means:
+
+- Sending our newsletter, show calendar and open mic updates, and announcements about BCO programs like showcases, free courses, and opportunities for comedians.
+- Tailoring what you get (for example, comedian-focused updates go to comedians).
+- Understanding, in aggregate, which emails are useful so we can send better ones. We may report total subscriber counts or open rates to our board or funders, but never individual names or addresses.
+
+## What we never do
+
+We never sell, rent, or trade your email address or personal information. We also don't share it with venues, comedians, sponsors, or partner organizations.
+
+We disclose your information only:
+
+- To the email service provider that delivers our emails, which processes it on our behalf.
+- If required by law, such as a valid subpoena or court order.
+- If BCO merges with or transfers its programs to another nonprofit, in which case this policy continues to apply and we'll tell you first.
+
+## Email service provider and tracking
+
+Our emails are sent through [EMAIL PROVIDER, e.g. Mailchimp, Buttondown, or Google Groups], which stores your information on its servers under its own [privacy policy](https://example.com). Your data may be stored on servers in the United States.
+
+Like most newsletter tools, our provider uses a small tracking pixel and tracked links to show us whether an email was opened and which links were clicked. You can block this by turning off automatic image loading in your email app. Signing up does not place any advertising cookies on your device.
+
+## Your choices
+
+You can leave the list at any time, and we'll stop emailing you right away.
+
+- **Unsubscribe:** click the unsubscribe link at the bottom of any email, or email us and we'll remove you.
+- **See or correct your info:** email us and we'll tell you what we hold and fix anything that's wrong.
+- **Delete your info:** ask us and we'll permanently delete your record from our list, usually within 30 days. Our provider may keep a suppression record of your address so you aren't accidentally re-added.
+
+We only add people who sign up themselves. We never add you because you performed at, attended, or bought tickets to a show.
+
+## Data retention and security
+
+We keep your information while you're subscribed and delete it within 30 days of a deletion request. If you unsubscribe without asking for deletion, we keep only your address on a do-not-email list.
+
+Access to the list is limited to BCO staff who run our email, and accounts are protected with strong passwords and two-factor authentication. No system is perfectly secure, but if we learn of a breach affecting your information, we'll notify you promptly.
+
+## Children
+
+Our email list is for adults. We don't knowingly collect information from anyone under 13, and if we learn we have, we'll delete it.
+
+## Changes to this policy
+
+If we make a meaningful change, we'll update the date at the top and tell subscribers by email before it takes effect.
+
+## Contact us
+
+Questions or requests: candy@baltimorecomedy.org
+
+BaltimoreComedy.org, Baltimore, MD
