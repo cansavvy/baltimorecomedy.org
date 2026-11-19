@@ -677,6 +677,30 @@ table.openmic-table a {
   color: #e88a8a;
 }
 
+/* ===== Open mic status flags (from the status-check sheet) ===== */
+
+.mic-status {
+  display: inline-block;
+  margin-top: 0.3rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  border: 1px dashed transparent;
+}
+
+.mic-status-ended {
+  background: rgba(224, 90, 90, 0.12);
+  border-color: rgba(224, 90, 90, 0.5);
+  color: #e88a8a;
+}
+
+.mic-status-changed {
+  background: rgba(232, 193, 90, 0.12);
+  border-color: rgba(232, 193, 90, 0.5);
+  color: #e8c15a;
+}
+
 .access-legend {
   font-size: 0.85rem;
   color: #a9c3de;

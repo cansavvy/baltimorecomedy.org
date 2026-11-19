@@ -16,12 +16,13 @@ Click a show name for tickets or event details. Dates are Eastern Time.
 
 <div style="text-align:center; margin-bottom: 1rem;">
 <button id="mic-toggle" class="cta-button" onclick="bcToggleMics()">Hide Open Mics</button>
+<p style="margin-top:0.6rem;"><a href="index.qmd#comedy-map">See shows and mics on a map →</a></p>
 </div>
 
 {{< include _generated/shows-content.qmd >}}
 
 <div style="text-align:center; margin-top:2.5rem;">
-<a class="cta-button" href="submit.qmd">Have a show to add? →</a>
+<a class="cta-button" href="submit.html">Have a show to add? →</a>
 </div>
 
 <script>
@@ -40,5 +41,20 @@ document.addEventListener('DOMContentLoaded', function() {
   if (btn && document.body.classList.contains('hide-mics')) {
     btn.textContent = 'Show Open Mics';
   }
+
+  // Safety net: the calendar is built when the site is generated, so if a
+  // rebuild is missed, hide any month that's already over instead of
+  // opening on last month.
+  var MONTHS = ["january","february","march","april","may","june","july",
+                "august","september","october","november","december"];
+  var now = new Date();
+  var thisMonth = now.getFullYear() * 12 + now.getMonth();
+  document.querySelectorAll('section.level3').forEach(function(sec) {
+    var m = /^([a-z]+)-(\d{4})$/.exec(sec.id || "");
+    if (!m || MONTHS.indexOf(m[1]) === -1) return;
+    if (Number(m[2]) * 12 + MONTHS.indexOf(m[1]) < thisMonth) {
+      sec.style.display = "none";
+    }
+  });
 });
 </script>

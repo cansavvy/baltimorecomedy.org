@@ -4,9 +4,32 @@
 # Lines starting with # (like this one) and blank lines are ignored.
 # Add or remove a line, save, and the next pipeline run picks it up —
 # no need to touch generate_content.py at all.
+#
+# Shows more than EVENTBRITE_MAX_MILES_FROM_BALTIMORE (50) miles away are
+# skipped automatically, so regional producers are safe to list here.
 
 https://www.eventbrite.com/o/5340822879
 https://www.eventbrite.com/o/32042122709
 https://www.eventbrite.com/o/119257059441
 https://www.eventbrite.com/o/33650327891
 https://www.eventbrite.com/o/49882257563
+
+# --- Added Nov 2026: local indie producers ---
+# Mobtown Comedy (Mayhem Royale, No Witnesses, Bula! kava shows)
+https://www.eventbrite.com/o/77710299763
+# MF'ing (Michael Furr) Productions (Locally Sourced Comedy at Pitango, roasts at BIG)
+https://www.eventbrite.com/o/18445769829
+# Harm City Comedy (Zissimos / The Lou Room showcases, benefit shows)
+https://www.eventbrite.com/o/65090988633
+# Bmore Funny Entertainment (Ovenbird, Mount Royal Soaps, Filippo's)
+https://www.eventbrite.com/o/15776539097
+# Charm City Comedy (improv, sketch, standup; quiet right now)
+https://www.eventbrite.com/o/6457195163
+
+# --- Regional producers with regular Baltimore-area shows ---
+# Beer Run Comedy (Guilford Hall, Heavy Seas, Fallston Barrel House, Annapolis)
+https://www.eventbrite.com/o/52066742663
+# Encore Comedy (Cushwa Brewing in Columbia and other MD breweries)
+https://www.eventbrite.com/o/72313162423
+# Broken Diamond Comedy (Comedy Club Takeovers at Timbuktu in Hanover, Annapolis)
+https://www.eventbrite.com/o/13757632993

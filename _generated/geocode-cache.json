@@ -1,5 +1,13 @@
 {
   "\"6515 Bel Air Road\", Baltimore, MD": null,
+  "10 N Railroad St, Hanover, PA": [
+    39.801364,
+    -76.983065
+  ],
+  "101 E 25th St, Baltimore, MD": [
+    39.317708,
+    -76.615218
+  ],
   "1031 Eisenhower Blvd, Harrisburg": [
     40.2226288,
     -76.792215
@@ -60,6 +68,10 @@
     39.953558,
     -76.759271
   ],
+  "1402 Handlir Dr, Bel Air, MD": [
+    39.481136,
+    -76.255248
+  ],
   "1415 Washington Blvd, Baltimore": [
     39.2792382,
     -76.636906
@@ -77,6 +89,10 @@
     39.1088753,
     -76.7237597
   ],
+  "1700 Thames St, Baltimore, MD": [
+    39.282003,
+    -76.592554
+  ],
   "1716 Thames St, Baltimore, MD": [
     39.2820367,
     -76.5919652
@@ -84,6 +100,10 @@
   "1727 N Charles St, Baltimore, MD": [
     39.3090978,
     -76.6163154
+  ],
+  "209 3rd St, New Cumberland, PA": [
+    40.227028,
+    -76.863894
   ],
   "209 N Market St, Frederick, MD": [
     39.4168275,
@@ -109,31 +129,79 @@
     39.5391841,
     -76.3357462
   ],
+  "255 N Washington St, Rockville, MD": [
+    39.087484,
+    -77.15294
+  ],
   "2736 Crain Hwy, Waldorf, MD": [
     38.636919,
     -76.899612
+  ],
+  "2940 N 7th St, Harrisburg, PA": [
+    40.293037,
+    -76.893804
   ],
   "32 Market Pl, Baltimore, MD": [
     39.289598,
     -76.6072569
   ],
+  "325 St John St, Havre De Grace": [
+    39.550579,
+    -76.09005
+  ],
+  "3328 Foster Ave, Baltimore, MD": [
+    39.284707,
+    -76.569026
+  ],
   "3600 Hickory Ave, Baltimore, MD": [
     39.3312305,
     -76.6339767
+  ],
+  "3605 14th St NW, Washington, DC": [
+    38.936416,
+    -77.032402
+  ],
+  "3972 Campus Dr, College Park, MD": [
+    38.988165,
+    -76.94472
   ],
   "400 W Lombard St, Baltimore, MD": [
     39.2876143,
     -76.6212646
   ],
+  "401 E 30th St, Baltimore, MD": [
+    39.324235,
+    -76.610413
+  ],
+  "418 S Conkling St, Baltimore, MD": [
+    39.286971,
+    -76.567373
+  ],
   "4501 Woodberry St, Riverdale": [
     38.9705013,
     -76.9367358
+  ],
+  "4615 Hollins Ferry Rd, Halethorpe": [
+    39.23113,
+    -76.675573
   ],
   "49 Eastern Blvd N, Hagerstown": [
     39.6342891,
     -77.6978089
   ],
+  "5 E Church St, Frederick, MD": [
+    39.415484,
+    -77.410536
+  ],
   "500 W Patrick St fl 2, Frederick": null,
+  "500 W Patrick St, Frederick": [
+    39.413448,
+    -77.425751
+  ],
+  "5801 Merriweather Dr, Columbia": [
+    39.210841,
+    -76.864185
+  ],
   "5802 Georgia Ave NW, DC": [
     38.9602692,
     -77.0283944
@@ -141,6 +209,10 @@
   "6001 Belair Rd, Baltimore, MD": [
     39.3473897,
     -76.5386603
+  ],
+  "611 N Market St, Frederick, MD": [
+    39.421888,
+    -77.410263
   ],
   "6515 Bel Air Road, Baltimore, MD": null,
   "701 S Broadway, Baltimore, MD": [
@@ -154,6 +226,10 @@
   "800 S Kenwood Ave, Baltimore": [
     39.2830522,
     -76.5772611
+  ],
+  "801 S Decker Ave, Baltimore": [
+    39.283206,
+    -76.573262
   ],
   "813 S Broadway, Baltimore, MD": [
     39.2822149,
@@ -189,6 +265,10 @@
     39.0916838,
     -77.2041649
   ],
+  "9861 Broken Land Pkwy, Columbia": [
+    39.183124,
+    -76.850933
+  ],
   "Anegada Delights, 9861 Broken Land Pkwy, Columbia": [
     39.1833246,
     -76.8510612
@@ -216,20 +296,12 @@
     39.4154881,
     -77.410512
   ],
-  "Charlie's Pizza": [
-    45.5166573,
-    12.1880603
-  ],
   "Charlie's Pizza, 15855 Redland Rd, Rockville, MD": null,
   "Church of Satire, 106 Broadway Hanover, PA": null,
   "Clipper City Barber Co, 1716 Thames St, Baltimore, MD": null,
   "Da Arthouse, 1115 W 36th St, Baltimore, MD": null,
   "Delizia Cafe, 14 E Patrick St, Frederick, MD": null,
   "Docs by the Clock, 400 W Lombard St, Baltimore, MD": null,
-  "Dynasty Event Hall": [
-    24.8243199,
-    67.0354584
-  ],
   "Dynasty Event Hall, \"6515 Bel Air Road\", Baltimore, MD": null,
   "Dynasty Event Hall, 6515 Bel Air Road, Baltimore, MD": null,
   "Emilio's Brick Oven Pizza, 22207 Shaw Rd, Sterling, VA": null,
@@ -331,5 +403,10 @@
   ],
   "Wit's End Saloon, 9603 Deereco Rd, Timonium, MD": null,
   "Zenobia's Hookah Lounge": null,
-  "Zenobia's Hookah Lounge, 500 W Patrick St fl 2, Frederick": null
+  "Zenobia's Hookah Lounge, 500 W Patrick St fl 2, Frederick": null,
+  "region:Baltimore Improv Group (B.I.G)": null,
+  "region:The Club Car": [
+    39.311394,
+    -76.617045
+  ]
 }

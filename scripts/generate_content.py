@@ -53,6 +53,12 @@ COMEDIANS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTXiMDWyDOF
 MEDIA_CSV_URL = "https://docs.google.com/spreadsheets/d/11UCtXbXNO0zXAQaZ3FW1IlPnCcGsJ0A-kVeP5P_slag/export?format=csv&gid=581388853"  # "Add a Podcast/Book/Media" response sheet
 OPENMICS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSAxpZ6jerNNfwdMnqPX3rrTN6WQ-kKOmEplH2OGiUH384XWFLB9i6-WDMXM4GzMvSlIJkjBtknnZ1Q/pub?output=csv"  # Open mic listing sheet, published as CSV
 ACCESSIBILITY_CSV_URL = "https://docs.google.com/spreadsheets/d/1YPzNTj1Qk50UyutI2YLxbLmHn7Pum6zO8nONxnHGt2s/export?format=csv&gid=1785766944"  # Your own venue-accessibility sheet (Venue / Rating / Notes columns)
+# Your own open mic status-check sheet ("Open Mics" tab). Layered on top of
+# the main listing the same way the accessibility sheet is: it never edits
+# Mo's sheet, it only marks mics as ended / unconfirmed, corrects details
+# you've verified, and adds confirmed mics that aren't on the main list.
+# See fetch_status_overrides() for the columns it reads.
+STATUS_CSV_URL = "https://docs.google.com/spreadsheets/d/1pHo4Vc0ZZ2I4OouopX-FP07Mdgr1aWUuYfFDEQ4MUys/export?format=csv&gid=0"
 
 # Eventbrite organizer pages to pull events from automatically, e.g.:
 #   "https://www.eventbrite.com/o/119257059441"
@@ -182,6 +188,11 @@ def normalize_form_rows(rows: list[dict]) -> list[dict]:
             {
                 "name": r.get("Show name", "").strip() or "Untitled Show",
                 "venue": r.get("Venue", "").strip(),
+                # Only used to place the show on the map; the form may not
+                # ask for an address, in which case the venue name is used.
+                "address": pick_field(
+                    r, "Venue Address", "Venue address", "Address"
+                ).strip(),
                 "date": parse_date_safe(r.get("Date", "")),
                 "link": resolve_link(r.get("Link to where folks can buy tickets", ""))
                 or "#",
@@ -306,6 +317,8 @@ def fetch_eventbrite_organizer_events(organizer_url: str) -> list[dict]:
                 if url not in found:
                     start_raw = extract_start_raw(node)
                     venue = ""
+                    address = ""
+                    coords = None
                     v = (
                         node.get("venue")
                         or node.get("primary_venue")
@@ -313,11 +326,32 @@ def fetch_eventbrite_organizer_events(organizer_url: str) -> list[dict]:
                     )
                     if isinstance(v, dict):
                         venue = v.get("name", "") or ""
+                        # Eventbrite venues usually carry their own address
+                        # and coordinates, which saves a geocoder lookup.
+                        a = v.get("address")
+                        lat = v.get("latitude")
+                        lng = v.get("longitude")
+                        if isinstance(a, dict):
+                            address = a.get("localized_address_display") or ", ".join(
+                                str(x)
+                                for x in (a.get("address_1"), a.get("city"), a.get("region"))
+                                if x
+                            )
+                            lat = a.get("latitude", lat)
+                            lng = a.get("longitude", lng)
+                        elif isinstance(a, str):
+                            address = a
+                        try:
+                            coords = [float(lat), float(lng)]
+                        except (TypeError, ValueError):
+                            coords = None
                     elif isinstance(v, str):
                         venue = v
                     found[url] = {
                         "name": str(name).strip(),
                         "venue": str(venue).strip(),
+                        "address": str(address).strip(),
+                        "coords": coords,
                         "date": parse_eventbrite_date(start_raw),
                         "link": url,
                         "tag": "",
@@ -361,10 +395,62 @@ def parse_eventbrite_date(value):
     return parse_date_safe(value)
 
 
+# Some organizers in eventbrite_urls.txt (Beer Run Comedy, Encore Comedy,
+# Broken Diamond) run shows all over the region. Their events are kept only
+# if they're within this many miles of downtown Baltimore. Events whose page
+# gives no coordinates are always kept.
+EVENTBRITE_MAX_MILES_FROM_BALTIMORE = 50
+BALTIMORE_CENTER = (39.2904, -76.6122)
+
+
+def miles_between(a, b) -> float:
+    import math
+
+    lat1, lng1, lat2, lng2 = map(math.radians, (a[0], a[1], b[0], b[1]))
+    h = (
+        math.sin((lat2 - lat1) / 2) ** 2
+        + math.cos(lat1) * math.cos(lat2) * math.sin((lng2 - lng1) / 2) ** 2
+    )
+    return 3958.8 * 2 * math.asin(math.sqrt(h))
+
+
+def looks_out_of_area(event: dict) -> bool:
+    """For events with no coordinates: regional producers put the town in
+    the title, like "Encore Comedy @ Bunnyman Brewing (Chantilly, VA)"."""
+    text = " ".join(event.get(k) or "" for k in ("name", "venue", "address"))
+    return bool(
+        re.search(
+            r"\b(VA|Virginia|NJ|New Jersey|NY|New York|MA|ME|NH|VT|CT|RI|TN|NC|WV|WA)\b",
+            text,
+        )
+    )
+
+
 def fetch_all_eventbrite_events(organizer_urls: list[str]) -> list[dict]:
     all_events = []
+    seen = set()
     for url in organizer_urls:
-        all_events.extend(fetch_eventbrite_organizer_events(url))
+        kept = dropped = 0
+        for e in fetch_eventbrite_organizer_events(url):
+            # The same show can be listed by two organizers (a producer and
+            # the venue); keep it once.
+            if e["link"] in seen:
+                continue
+            seen.add(e["link"])
+            if (
+                e.get("coords")
+                and miles_between(BALTIMORE_CENTER, e["coords"])
+                > EVENTBRITE_MAX_MILES_FROM_BALTIMORE
+            ) or (not e.get("coords") and looks_out_of_area(e)):
+                dropped += 1
+                continue
+            kept += 1
+            all_events.append(e)
+        if dropped:
+            print(
+                f"  [eventbrite] {url}: kept {kept}, skipped {dropped} more than "
+                f"{EVENTBRITE_MAX_MILES_FROM_BALTIMORE} miles from Baltimore"
+            )
     return all_events
 
 
@@ -383,7 +469,12 @@ def build_shows_content(events: list[dict], openmic_entries: list[dict] = None) 
     mics_by_weekday: dict = {}
     for m in openmic_entries:
         wd = m.get("weekday")
-        if wd is not None and not is_mic_paused(m.get("notes", "")):
+        if (
+            wd is not None
+            and not is_mic_paused(m.get("notes", ""))
+            and m.get("status") != STATUS_POSSIBLY_ENDED
+            and not is_irregular(m.get("frequency", ""))
+        ):
             mics_by_weekday.setdefault(wd, []).append(m)
 
     dated = [e for e in events if e.get("date")]
@@ -1080,8 +1171,145 @@ def normalize_accessibility(raw: str) -> str:
     return ACCESSIBILITY_TIERS.get(raw.lower(), raw)
 
 
+# --------------------------- STATUS CHECK OVERRIDES ---------------------------
+
+# Status values used in the status-check sheet's "Status" dropdown.
+STATUS_ENDED = "ended"
+STATUS_POSSIBLY_ENDED = "possibly ended"
+STATUS_POSSIBLY_CHANGED = "possibly changed"
+# Only these statuses let the sheet's Time / Frequency replace the main
+# list's values, and only these let a brand-new row (no Site ID) appear on
+# the site. "Unverified" rows leave the main list's data alone, so Mo's own
+# updates keep coming through.
+VERIFIED_STATUSES = ("verified active", "confirmed by host")
+
+
+def fetch_status_overrides(url: str) -> dict:
+    """
+    Fetch the status-check sheet and return:
+      {"by_key": {(site_id, weekday): override}, "new": [override, ...]}
+
+    Columns read (header row 1): Site ID, Day, Status, Time, Frequency,
+    Last Verified, plus Open Mic / Venue / Address / Host & Links /
+    Sign-up & Notes / Accessibility for new rows.
+
+    Site ID is the row id the main table already uses (e.g.
+    "mic-art-of-comedy-motorhouse"). It's matched together with the Day,
+    because a few mics share an id across different nights (the HBG Comedy
+    Zone and Wit's End rows, for example). If Mo renames a mic or venue in
+    the main sheet, its id changes and that row's override quietly stops
+    applying until the Site ID is updated — run --debug-status to list any
+    Site IDs that no longer match.
+    """
+    try:
+        rows = fetch_csv_rows(url)
+    except Exception as e:
+        print(f"[status] FAILED to fetch status sheet: {e}", file=sys.stderr)
+        return {"by_key": {}, "new": []}
+
+    by_key = {}
+    new_rows = []
+    for row in rows:
+        status = pick_field(row, "Status").strip()
+        if not status:
+            continue
+        override = {
+            "status": status.lower(),
+            "site_id": pick_field(row, "Site ID").strip(),
+            "weekday": weekday_from_free_text(pick_field(row, "Day")),
+            "time": pick_field(row, "Time").strip(),
+            "frequency": pick_field(row, "Frequency").strip(),
+            "last_verified": pick_field(row, "Last Verified").strip(),
+            "name": pick_field(row, "Open Mic").strip(),
+            "venue": pick_field(row, "Venue").strip(),
+            "address": pick_field(row, "Address").strip(),
+            "link": pick_field(row, "Host & Links").strip(),
+            "notes": pick_field(row, "Sign-up & Notes").strip(),
+            "accessibility": pick_field(row, "Accessibility").strip(),
+        }
+        if override["site_id"]:
+            by_key[(override["site_id"], override["weekday"])] = override
+        else:
+            new_rows.append(override)
+
+    print(
+        f"  [status] loaded {len(by_key)} status override(s) and "
+        f"{len(new_rows)} row(s) not on the main list"
+    )
+    return {"by_key": by_key, "new": new_rows}
+
+
+def is_irregular(frequency: str) -> bool:
+    """'Some Wednesdays', 'varies' and the like: real, but with no fixed
+    pattern to put on the calendar. The table still lists them."""
+    return bool(re.search(r"\bsome\b|\bvar(ies|y)\b|irregular", (frequency or "").lower()))
+
+
+def is_weekly(frequency: str) -> bool:
+    f = (frequency or "").strip().lower()
+    return f in ("", "weekly", "every week") or bool(re.fullmatch(r"every \w+day", f))
+
+
+def apply_status_overrides(entries: list[dict], status_overrides: dict) -> list[dict]:
+    """Layer the status-check sheet over the parsed main-list entries:
+    drop Ended mics, flag unconfirmed ones, apply verified corrections,
+    and append verified mics that the main list doesn't have."""
+    if not status_overrides:
+        return entries
+    by_key = status_overrides.get("by_key", {})
+
+    out = []
+    for e in entries:
+        o = by_key.get((e["slug"], e["weekday"]))
+        if not o:
+            out.append(e)
+            continue
+        if o["status"] == STATUS_ENDED:
+            continue  # stays in both sheets, just not on the site
+        e["status"] = o["status"]
+        if o["status"] in VERIFIED_STATUSES:
+            if o["time"]:
+                e["time"] = o["time"]
+            if not is_weekly(o["frequency"]):
+                e["frequency"] = o["frequency"]
+                e["occurrences"] = parse_month_occurrences(o["frequency"])
+        if o["last_verified"]:
+            e["last_verified"] = o["last_verified"]
+        out.append(e)
+
+    for o in status_overrides.get("new", []):
+        if o["status"] not in VERIFIED_STATUSES or not o["name"]:
+            continue
+        venue = o["venue"] or o["address"]
+        frequency = "" if is_weekly(o["frequency"]) else o["frequency"]
+        # The sheet's Host & Links cell can hold several handles; use the
+        # first @handle or URL as the contact link.
+        handle = re.search(r"https?://\S+|@[A-Za-z0-9._]+", o["link"])
+        out.append(
+            {
+                "name": o["name"],
+                "venue": venue,
+                "address": o["address"],
+                "time": o["time"],
+                "weekday": o["weekday"],
+                "occurrences": parse_month_occurrences(frequency),
+                "frequency": frequency,
+                "notes": o["notes"],
+                "last_verified": o["last_verified"],
+                "link": resolve_openmic_link(handle.group(0) if handle else ""),
+                "other": "",
+                "other_link": "",
+                "accessibility": normalize_accessibility(o["accessibility"]),
+                "accessibility_note": "",
+                "slug": slugify(f"{o['name']}-{venue}"),
+                "status": o["status"],
+            }
+        )
+    return out
+
+
 def extract_openmic_entries(
-    rows: list[dict], accessibility_lookup: dict = None
+    rows: list[dict], accessibility_lookup: dict = None, status_overrides: dict = None
 ) -> list[dict]:
     """
     Parses the open mic listing sheet, handling the layout it's actually
@@ -1104,6 +1332,9 @@ def extract_openmic_entries(
     plus an 'occurrences' list (see parse_month_occurrences) for mics
     that only happen on specific week(s) of the month rather than every
     week.
+
+    status_overrides: optional result of fetch_status_overrides() — see
+    apply_status_overrides() for what it changes.
     """
     accessibility_lookup = accessibility_lookup or {}
     current_weekday = None
@@ -1168,14 +1399,18 @@ def extract_openmic_entries(
                 "accessibility": accessibility,
                 "accessibility_note": accessibility_note,
                 "slug": slug,
+                "status": "",
+                "frequency": "",
             }
         )
 
-    return entries
+    return apply_status_overrides(entries, status_overrides)
 
 
-def build_openmics_content(rows: list[dict], accessibility_lookup: dict = None) -> str:
-    entries = extract_openmic_entries(rows, accessibility_lookup)
+def build_openmics_content(
+    rows: list[dict], accessibility_lookup: dict = None, status_overrides: dict = None
+) -> str:
+    entries = extract_openmic_entries(rows, accessibility_lookup, status_overrides)
 
     if not entries:
         return (
@@ -1185,13 +1420,11 @@ def build_openmics_content(rows: list[dict], accessibility_lookup: dict = None) 
             ":::\n"
         )
 
-    today_str = date.today().strftime("%Y-%m-%d")
-
     lines = [
         "<!--",
         "AUTO-GENERATED FILE — DO NOT HAND-EDIT",
         "Regenerated by scripts/generate_content.py from the open mic",
-        "listing sheet.",
+        "listing sheet, with the status-check sheet layered on top.",
         f"Last generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
         "-->",
         "",
@@ -1214,8 +1447,19 @@ def build_openmics_content(rows: list[dict], accessibility_lookup: dict = None) 
             )
             or "—"
         )
+        if e.get("frequency"):
+            when = f"{when} ({escape_html(e['frequency'])})"
         notes = escape_html(e["notes"]) or "—"
-        last_verified = escape_html(e["last_verified"]) or today_str
+        # No date on file means nobody has checked it, so say so rather
+        # than stamping today's date on it.
+        last_verified = escape_html(e["last_verified"]) or "—"
+
+        # Status flag from the status-check sheet (see apply_status_overrides).
+        status_badge = {
+            STATUS_POSSIBLY_ENDED: '<span class="mic-status mic-status-ended">May have ended</span>',
+            STATUS_POSSIBLY_CHANGED: '<span class="mic-status mic-status-changed">Details may have changed</span>',
+        }.get(e.get("status", ""), "")
+        name_cell = f"{name}<br>{status_badge}" if status_badge else name
 
         # Link the venue straight to a Google Maps search for its
         # address — no geocoding, no API key, just a URL. Falls back to
@@ -1272,7 +1516,7 @@ def build_openmics_content(rows: list[dict], accessibility_lookup: dict = None) 
 
         lines.append(
             f'<tr id="{row_id}">'
-            f"<td>{name}</td>"
+            f"<td>{name_cell}</td>"
             f"<td>{venue_cell}</td>"
             f"<td>{when}</td>"
             f"<td>{contact_cell}</td>"
@@ -1293,11 +1537,301 @@ def build_openmics_content(rows: list[dict], accessibility_lookup: dict = None) 
         "<br>This is self-reported/best-effort info, not independently verified — call ahead to confirm before you go."
         "</p>\n"
     )
+    flagged = (STATUS_POSSIBLY_ENDED, STATUS_POSSIBLY_CHANGED)
+    if any(e.get("status") in flagged for e in entries):
+        lines.append(
+            '<p class="access-legend">'
+            '<span class="mic-status mic-status-ended">May have ended</span> we couldn\'t find recent signs it\'s still running '
+            '&nbsp;&nbsp;<span class="mic-status mic-status-changed">Details may have changed</span> the day, time or format may be out of date '
+            "<br>Check the host's Instagram before you go, and email us if you know it's still on (or gone)."
+            "</p>\n"
+        )
 
     return "\n".join(lines)
 
 
 # --------------------------- MAIN ---------------------------
+
+
+# ------------------------------- OPEN MIC MAP -------------------------------
+
+GEOCODE_CACHE_PATH = f"{OUTPUT_DIR}/geocode-cache.json"
+NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
+# Nominatim's usage policy asks for a real contact in the User-Agent and
+# no more than one request a second.
+GEOCODE_USER_AGENT = "baltimorecomedy.org open mic map (candyscomedybaltimore@gmail.com)"
+GEOCODE_DELAY_SECONDS = 1.1
+GEOCODE_MAX_LOOKUPS_PER_RUN = 120
+# Shows usually come with just a venue name. Name-only lookups are kept
+# inside this box (roughly Harrisburg/York down to DC and Annapolis) so a
+# "Motorhouse" or "The Manor" can't land in another state.
+GEOCODE_REGION_VIEWBOX = "-78.2,40.5,-75.8,38.6"  # west,north,east,south
+# Anything the geocoder puts outside this box is treated as a miss. Old
+# name-only lookups put "Dynasty Event Hall" in Karachi and "Charlie's
+# Pizza" in Italy.
+MAP_SERVICE_AREA = {"south": 37.5, "north": 41.0, "west": -79.5, "east": -74.5}
+# How far ahead the map shows one-off shows.
+MAP_SHOW_DAYS_AHEAD = 60
+
+# Pin a venue by hand when the geocoder can't find it or puts it in the
+# wrong spot. Key: the venue's address exactly as the sheet has it (or the
+# venue name, if it has no address). Value: [latitude, longitude], e.g. from
+# right-clicking the spot in Google Maps.
+MAP_PIN_OVERRIDES = {
+    # "813 S Broadway, Baltimore, MD": [39.2826, -76.5934],
+}
+
+
+def clean_address(address: str) -> str:
+    """Tidy the sheet's address text into something a geocoder can read."""
+    a = (address or "").replace('"', "").strip()
+    a = re.sub(r",?\s*\b(floor|fl|suite|ste|unit)\.?\s*#?\d+\w*", "", a, flags=re.I)
+    # A stray trailing digit ("Baltimore, MD 2") is a typo, not a ZIP code.
+    a = re.sub(r"(,\s*[A-Z]{2})\s+\d{1,2}$", r"\1", a)
+    return re.sub(r"\s{2,}", " ", a).strip(" ,")
+
+
+def geocode_queries(venue: str, address: str) -> list[str]:
+    """Queries to try, best first. Address alone works far more often than
+    'Venue Name, address', which is what most old cache misses were."""
+    a = clean_address(address)
+    queries = []
+    if a and re.search(r"\d", a):
+        queries.append(a)
+        queries.append(f"{venue}, {a}" if venue else a)
+    elif venue and a:
+        queries.append(f"{venue}, {a}")
+    # A venue name with no address isn't guessed at: it could be in
+    # Frederick or Harrisburg as easily as Baltimore. It's listed under the
+    # map as "not on the map yet" instead; add it to MAP_PIN_OVERRIDES.
+    return list(dict.fromkeys(q for q in queries if q))
+
+
+def load_geocode_cache() -> dict:
+    try:
+        with open(GEOCODE_CACHE_PATH, encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def nominatim_lookup(query: str, in_region: bool = False):
+    """Return [lat, lng], None if Nominatim found nothing, or raise on a
+    network problem (which is not cached, so it's retried next run).
+    in_region keeps the result inside GEOCODE_REGION_VIEWBOX."""
+    params = {"q": query, "format": "json", "limit": 1, "countrycodes": "us"}
+    if in_region:
+        params.update({"viewbox": GEOCODE_REGION_VIEWBOX, "bounded": 1})
+    params = urllib.parse.urlencode(params)
+    req = urllib.request.Request(
+        f"{NOMINATIM_URL}?{params}", headers={"User-Agent": GEOCODE_USER_AGENT}
+    )
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        results = json.loads(resp.read().decode("utf-8"))
+    if not results:
+        return None
+    return [round(float(results[0]["lat"]), 6), round(float(results[0]["lon"]), 6)]
+
+
+def in_service_area(coords) -> bool:
+    try:
+        lat, lng = float(coords[0]), float(coords[1])
+    except (TypeError, ValueError, IndexError):
+        return False
+    a = MAP_SERVICE_AREA
+    return a["south"] <= lat <= a["north"] and a["west"] <= lng <= a["east"]
+
+
+def cached_lookup(query: str, cache: dict, budget: dict, in_region: bool = False):
+    """One geocoder query, through the cache. Misses are cached as None and
+    retried on later runs (within the per-run budget)."""
+    import time
+
+    key = f"region:{query}" if in_region else query
+    if cache.get(key) and in_service_area(cache[key]):
+        return cache[key]
+    if budget["left"] <= 0:
+        return None
+    budget["left"] -= 1
+    time.sleep(GEOCODE_DELAY_SECONDS)
+    try:
+        coords = nominatim_lookup(query, in_region=in_region)
+    except Exception as e:
+        print(f"  [map] geocoder unreachable for {query!r}: {e}", file=sys.stderr)
+        budget["left"] = 0  # don't hammer it if it's down
+        return None
+    if coords and not in_service_area(coords):
+        print(f"  [map] ignoring far-away match for {query!r}: {coords}", file=sys.stderr)
+        coords = None
+    cache[key] = coords
+    return coords
+
+
+def pin_override(venue: str, address: str):
+    for key in (address or "", venue or ""):
+        if key and key in MAP_PIN_OVERRIDES:
+            return MAP_PIN_OVERRIDES[key]
+    return None
+
+
+def geocode_entry(entry: dict, cache: dict, budget: dict):
+    """Find coordinates for one mic: manual override, then cache, then
+    Nominatim. Updates the cache in place."""
+    venue, address = entry.get("venue", ""), entry.get("address", "")
+    coords = pin_override(venue, address)
+    if coords:
+        return coords
+    for query in geocode_queries(venue, address):
+        coords = cached_lookup(query, cache, budget)
+        if coords:
+            return coords
+        if budget["left"] <= 0 and query not in cache:
+            break
+    return None
+
+
+def geocode_show(show: dict, cache: dict, budget: dict, known_venues: dict):
+    """Find coordinates for one show. Shows often have only a venue name,
+    so after the address it tries a venue the open mic list already
+    placed, then a name lookup kept inside the Baltimore region."""
+    if show.get("coords") and in_service_area(show["coords"]):
+        return show["coords"]
+    venue, address = show.get("venue", ""), show.get("address", "")
+    coords = pin_override(venue, address)
+    if coords:
+        return coords
+    if address:
+        coords = geocode_entry({"venue": venue, "address": address}, cache, budget)
+        if coords:
+            return coords
+    if venue and slugify(venue) in known_venues:
+        return known_venues[slugify(venue)]
+    if venue:
+        return cached_lookup(venue, cache, budget, in_region=True)
+    return None
+
+
+def new_pin(coords, venue: str, address: str) -> dict:
+    return {
+        "lat": coords[0],
+        "lng": coords[1],
+        "venue": venue,
+        "address": address,
+        "mics": [],
+        "shows": [],
+    }
+
+
+def build_map_content(entries: list[dict], shows: list[dict] = None) -> str:
+    """Pins for the Map page, one per venue, listing each open mic and each
+    upcoming show held there. Mics take the same entries as the Open Mics
+    table, so Ended mics are already gone and status flags carry over.
+    Shows are the same list the Shows calendar uses, limited to the next
+    MAP_SHOW_DAYS_AHEAD days."""
+    cache = load_geocode_cache()
+    budget = {"left": GEOCODE_MAX_LOOKUPS_PER_RUN}
+
+    venues = {}
+    unmapped = []
+    for e in entries:
+        coords = geocode_entry(e, cache, budget)
+        if not coords:
+            unmapped.append(
+                {"name": e["name"], "venue": e["venue"], "link": f"open-mics.html#{e['slug']}"}
+            )
+            continue
+        key = (round(coords[0], 4), round(coords[1], 4))
+        pin = venues.setdefault(key, new_pin(coords, e["venue"], e.get("address", "")))
+        pin["mics"].append(
+            {
+                "name": e["name"],
+                "weekday": e["weekday"],
+                "weekday_name": WEEKDAY_DISPLAY[e["weekday"]] if e["weekday"] is not None else "",
+                "time": e.get("time", ""),
+                "frequency": e.get("frequency", ""),
+                "status": e.get("status", ""),
+                # Plain .html: Quarto doesn't rewrite .qmd links inside a
+                # script, so "open-mics.qmd#..." 404s on the live site.
+                "link": f"open-mics.html#{e['slug']}",
+            }
+        )
+
+    # Venues the mic list already placed, so a show at "The Port Comedy
+    # Club" lands on the same pin without another lookup.
+    known_venues = {
+        slugify(p["venue"]): [p["lat"], p["lng"]] for p in venues.values() if p["venue"]
+    }
+
+    today = date.today()
+    horizon = today.toordinal() + MAP_SHOW_DAYS_AHEAD
+    unmapped_shows = []
+    for s in shows or []:
+        d = s.get("date")
+        if isinstance(d, datetime):
+            d = d.date()
+        if not d or d < today or d.toordinal() > horizon:
+            continue
+        coords = geocode_show(s, cache, budget, known_venues)
+        if not coords:
+            unmapped_shows.append(s)
+            continue
+        key = (round(coords[0], 4), round(coords[1], 4))
+        pin = venues.setdefault(
+            key, new_pin(coords, s.get("venue", ""), s.get("address", ""))
+        )
+        if not pin["venue"]:
+            pin["venue"] = s.get("venue", "")
+        pin["shows"].append(
+            {
+                "name": s.get("name", "Untitled Show"),
+                "date": d.isoformat(),
+                "date_label": d.strftime("%a, %b ") + str(d.day),
+                "weekday_name": WEEKDAY_DISPLAY[d.weekday()],
+                "tag": s.get("tag", ""),
+                "link": s.get("link") if s.get("link") not in (None, "", "#") else "shows.html",
+            }
+        )
+
+    for pin in venues.values():
+        pin["mics"].sort(key=lambda m: (m["weekday"] if m["weekday"] is not None else 9))
+        pin["shows"].sort(key=lambda x: x["date"])
+
+    with open(GEOCODE_CACHE_PATH, "w", encoding="utf-8") as f:
+        json.dump(cache, f, indent=2, sort_keys=True, ensure_ascii=False)
+        f.write("\n")
+
+    print(
+        f"  [map] {sum(len(p['mics']) for p in venues.values())} mics and "
+        f"{sum(len(p['shows']) for p in venues.values())} shows on {len(venues)} pins; "
+        f"{len(unmapped)} mics and {len(unmapped_shows)} shows not mapped"
+    )
+    for u in unmapped:
+        print(f"  [map] no location for mic: {u['name']} ({u['venue']})")
+    for s in unmapped_shows:
+        print(f"  [map] no location for show: {s.get('name')} ({s.get('venue') or 'no venue'})")
+
+    def as_js(value) -> str:
+        # "</" inside a <script> block would end it early.
+        return json.dumps(value, indent=2, ensure_ascii=False).replace("</", "<\\/")
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    return "\n".join(
+        [
+            "<!--",
+            "AUTO-GENERATED FILE — DO NOT HAND-EDIT",
+            "Regenerated by scripts/generate_content.py (build_map_content):",
+            "open mics plus shows in the next few weeks.",
+            "Coordinates are cached in _generated/geocode-cache.json; pin a",
+            "venue by hand with MAP_PIN_OVERRIDES in the script.",
+            f"Last generated: {now}",
+            "-->",
+            "",
+            "<script>",
+            f"window.BC_MIC_LOCATIONS = {as_js(list(venues.values()))};",
+            f"window.BC_MIC_UNMAPPED = {as_js(unmapped)};",
+            "</script>",
+        ]
+    )
 
 
 def write_file(path: str, content: str):
@@ -1331,6 +1865,11 @@ def main():
             )
             had_failure = True
 
+    status_overrides = {}
+    if STATUS_CSV_URL:
+        status_overrides = fetch_status_overrides(STATUS_CSV_URL)
+
+    combined_events = []  # also used by the map
     if SHOWS_CSV_URL or EVENTBRITE_ORGANIZER_URLS or OPENMICS_CSV_URL:
         try:
             form_rows = fetch_csv_rows(SHOWS_CSV_URL) if SHOWS_CSV_URL else []
@@ -1338,7 +1877,9 @@ def main():
                 form_rows
             ) + fetch_all_eventbrite_events(EVENTBRITE_ORGANIZER_URLS)
             openmic_entries = (
-                extract_openmic_entries(openmic_rows, accessibility_lookup)
+                extract_openmic_entries(
+                    openmic_rows, accessibility_lookup, status_overrides
+                )
                 if openmic_rows
                 else []
             )
@@ -1389,12 +1930,35 @@ def main():
         try:
             write_file(
                 f"{OUTPUT_DIR}/openmics-content.qmd",
-                build_openmics_content(openmic_rows, accessibility_lookup),
+                build_openmics_content(
+                    openmic_rows, accessibility_lookup, status_overrides
+                ),
             )
             any_run = True
         except Exception as e:
             print(
                 f"[openmics] FAILED to build page content, leaving existing openmics-content.qmd untouched: {e}",
+                file=sys.stderr,
+            )
+            had_failure = True
+
+    if openmic_rows or combined_events:
+        try:
+            write_file(
+                f"{OUTPUT_DIR}/openmics-map.qmd",
+                build_map_content(
+                    extract_openmic_entries(
+                        openmic_rows, accessibility_lookup, status_overrides
+                    )
+                    if openmic_rows
+                    else [],
+                    combined_events,
+                ),
+            )
+            any_run = True
+        except Exception as e:
+            print(
+                f"[map] FAILED, leaving existing openmics-map.qmd untouched: {e}",
                 file=sys.stderr,
             )
             had_failure = True
@@ -1544,6 +2108,24 @@ if __name__ == "__main__":
             print("Sample entries:")
             for k, v in list(lookup.items())[:5]:
                 print(f"  {k} -> {v}")
+
+    elif len(sys.argv) > 1 and sys.argv[1] == "--debug-status":
+        if not STATUS_CSV_URL or not OPENMICS_CSV_URL:
+            print("STATUS_CSV_URL and OPENMICS_CSV_URL must both be set.", file=sys.stderr)
+            sys.exit(1)
+        overrides = fetch_status_overrides(STATUS_CSV_URL)
+        rows = fetch_csv_rows(OPENMICS_CSV_URL, header_hint="Name")
+        entries = extract_openmic_entries(rows)  # main list only, no overrides
+        live_keys = {(e["slug"], e["weekday"]) for e in entries}
+        stale = [k for k in overrides["by_key"] if k not in live_keys]
+        print(f"{len(overrides['by_key']) - len(stale)} Site ID(s) match the main list.")
+        if stale:
+            print("These Site IDs no longer match a row on the main list (renamed or removed):")
+            for site_id, wd in stale:
+                day = WEEKDAY_DISPLAY[wd] if wd is not None else "?"
+                print(f"  - {site_id} ({day})")
+        shown = [o for o in overrides["new"] if o["status"] in VERIFIED_STATUSES]
+        print(f"{len(shown)} of {len(overrides['new'])} new row(s) are verified and will be added to the site.")
 
     elif len(sys.argv) > 1 and sys.argv[1] == "--debug-media":
         if not MEDIA_CSV_URL:

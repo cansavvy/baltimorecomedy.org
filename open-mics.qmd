@@ -1,20 +1,23 @@
 ---
 title: "Open Mics"
-subtitle: "Weekly open mics within an hour of Baltimore"
+subtitle: "Recurring open mics within an hour of Baltimore"
 ---
 
 <!--
 This page's table is auto-generated from Mo's open mic listing sheet via
-scripts/generate_content.py (see OPENMICS_CSV_URL). Don't hand-edit this
+scripts/generate_content.py (see OPENMICS_CSV_URL), with Candace's status-check
+sheet layered on top (see STATUS_CSV_URL): it hides Ended mics, flags
+unconfirmed ones, and applies verified corrections. Don't hand-edit this
 file — see README.md -> "How updates work."
 -->
 
 ::: {.aside-note}
-The core of this list is maintained by @mo_noor_lol and @maxagoodman. Thanks to them for allowing me to share it here. Accessibility column added separately, please email candyscomedybaltimore@gmail.com with any corrections or updates. 
+The core of this list is maintained by @mo_noor_lol and @maxagoodman. Thanks to them for allowing me to share it here. Accessibility column added separately, please email candyscomedybaltimore@gmail.com with any corrections or updates. Mics are checked against hosts and venue listings; anything we couldn't confirm recently is flagged, so check with the host before you go.
 :::
 
 <div style="max-width: 420px; margin: 0 auto 1.5rem auto;">
 <input type="text" id="openmic-search" class="site-search-input" placeholder="Search by name, venue, or day…" oninput="bcFilterOpenMics()">
+<p style="text-align:center; margin-top:0.6rem;"><a href="index.qmd#comedy-map">See mics and shows on a map →</a></p>
 </div>
 
 {{< include _generated/openmics-content.qmd >}}

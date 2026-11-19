@@ -17,6 +17,201 @@ page-layout: full
 </div>
 :::
 
+::: {#comedy-map .home-map}
+<h3 style="text-align:center; margin-bottom:0.8rem;">Where are the jokes?</h3>
+
+<!--
+The Comedy Map. Pins come from _generated/openmics-map.qmd, built by
+scripts/generate_content.py -> build_map_content. Hovering a pin shows
+what's there; clicking it goes to that mic's row on the Open Mics page or
+to the Shows calendar (a small chooser if a venue has both).
+-->
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+.openmic-map-controls { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin: 0 0 0.6rem 0; }
+.openmic-map-controls button {
+  background: transparent; color: #e8dcc3; border: 1px solid rgba(91,127,166,0.5);
+  border-radius: 14px; padding: 0.2rem 0.8rem; font-size: 0.85rem; cursor: pointer;
+}
+.openmic-map-controls button.active { background: #8c52ff; border-color: #8c52ff; color: #fff; }
+.leaflet-popup-content { font-size: 0.9rem; line-height: 1.4; max-height: 320px; overflow-y: auto; }
+.leaflet-popup-content .map-item { margin-top: 0.45rem; }
+.leaflet-popup-content .map-section { margin-top: 0.6rem; font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; color: #6b6f78; }
+.map-flag { font-size: 0.75rem; color: #b0481f; }
+#openmic-map { height: 460px; border-radius: 4px; overflow: hidden; border: 1px solid rgba(91,127,166,0.4); }
+.home-map { max-width: 1000px; margin: 2.5rem auto 0 auto; }
+.leaflet-interactive { cursor: pointer; }
+.openmic-map-legend { text-align: center; font-size: 0.85rem; color: #a9c3de; margin-top: 0.6rem; }
+.openmic-map-legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 0.3rem 0 0.8rem; vertical-align: middle; }
+</style>
+
+<div class="openmic-map-controls" id="map-types"></div>
+<div class="openmic-map-controls" id="openmic-map-days"></div>
+
+<div id="openmic-map"></div>
+
+<p class="openmic-map-legend">
+<span class="dot" style="background:#b98aff"></span>Open mic
+<span class="dot" style="background:#4fd1c5"></span>Show
+<span class="dot" style="background:#e8c15a"></span>Mic details may have changed
+<span class="dot" style="background:#7a7f8a"></span>Mic may have ended
+</p>
+
+
+{{< include _generated/openmics-map.qmd >}}
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function() {
+  // Older data files (before shows were added) have one flat entry per
+  // mic instead of one per venue; convert those so pins still show until
+  // the script runs again.
+  var venues = (window.BC_MIC_LOCATIONS || []).map(function(v) {
+    if (v.mics || v.shows) return v;
+    return {
+      lat: v.lat, lng: v.lng, venue: v.venue || "", address: "", shows: [],
+      mics: [{
+        name: v.name, weekday_name: v.weekday_name || "", time: v.time || "",
+        frequency: "", status: "",
+        link: String(v.link || "open-mics.html").replace("open-mics.qmd", "open-mics.html"),
+      }],
+    };
+  }).filter(function(v) {
+    // Skip pins the geocoder put far outside the region (it once put
+    // Dynasty Event Hall in Pakistan and Charlie's Pizza in Italy).
+    return v.lat >= 37.5 && v.lat <= 41 && v.lng >= -79.5 && v.lng <= -74.5;
+  });
+  var DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  var COLORS = { mic: "#b98aff", show: "#4fd1c5", changed: "#e8c15a", ended: "#7a7f8a" };
+  var state = { day: null, type: "all" };
+
+  function esc(text) {
+    var div = document.createElement("div");
+    div.textContent = text == null ? "" : String(text);
+    return div.innerHTML;
+  }
+
+  function pinColor(mics, shows) {
+    if (shows.length) return COLORS.show;
+    if (mics.every(function(m) { return m.status === "possibly ended"; })) return COLORS.ended;
+    if (mics.some(function(m) { return m.status === "possibly changed" || m.status === "possibly ended"; })) return COLORS.changed;
+    return COLORS.mic;
+  }
+
+  var MONTHS = ["january", "february", "march", "april", "may", "june", "july",
+                "august", "september", "october", "november", "december"];
+
+  // Where a click goes: a mic's row on the Open Mics page (which scrolls to
+  // and highlights it), or the Shows calendar at that show's month.
+  function micLink(m) {
+    return String(m.link || "open-mics.html").replace("open-mics.qmd", "open-mics.html");
+  }
+  function showLink(s) {
+    var d = /^(\d{4})-(\d{2})/.exec(s.date || "");
+    return d ? "shows.html#" + MONTHS[Number(d[2]) - 1] + "-" + d[1] : "shows.html";
+  }
+
+  function tooltipHtml(venue, mics, shows) {
+    var html = "<strong>" + esc(venue.venue || "Venue") + "</strong>";
+    shows.slice(0, 3).forEach(function(s) {
+      html += "<br>" + esc(s.date_label) + ": " + esc(s.name);
+    });
+    if (shows.length > 3) html += "<br>+ " + (shows.length - 3) + " more show" + (shows.length > 4 ? "s" : "");
+    mics.slice(0, 3).forEach(function(m) {
+      var when = [m.weekday_name, m.time].filter(Boolean).join(" ");
+      html += "<br>" + esc(m.name) + (when ? " (" + esc(when) + ")" : "");
+      if (m.status === "possibly ended") html += ' <span class="map-flag">may have ended</span>';
+      if (m.status === "possibly changed") html += ' <span class="map-flag">details may have changed</span>';
+    });
+    if (mics.length > 3) html += "<br>+ " + (mics.length - 3) + " more mic" + (mics.length > 4 ? "s" : "");
+    return html;
+  }
+
+  // Venues with both shows and mics get a small chooser instead.
+  function chooserHtml(venue, mics, shows) {
+    return "<strong>" + esc(venue.venue || "Venue") + "</strong>" +
+      '<div class="map-item"><a href="' + esc(showLink(shows[0])) + '">' + shows.length +
+      " upcoming show" + (shows.length > 1 ? "s" : "") + " →</a></div>" +
+      '<div class="map-item"><a href="' + esc(micLink(mics[0])) + '">' + mics.length +
+      " open mic" + (mics.length > 1 ? "s" : "") + " →</a></div>";
+  }
+
+  var map = L.map("openmic-map").setView([39.29, -76.61], 9); // roughly centered on Baltimore
+  // CARTO basemap key (free, from https://carto.com/basemaps/apikey/).
+  // It's meant to sit in public page code, so it's fine to commit.
+  var CARTO_KEY = "cb1_5bxl_1_1fb8391e3de3a5a971eb1ab6";
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png?key=" + CARTO_KEY, {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    maxZoom: 19,
+  }).addTo(map);
+  var layer = L.layerGroup().addTo(map);
+
+  // On the home page, don't let the map grab the mouse wheel while people
+  // scroll past it; zooming turns on once they click into the map.
+  if (document.getElementById("openmic-map").closest(".home-map")) {
+    map.scrollWheelZoom.disable();
+    map.on("click focus", function() { map.scrollWheelZoom.enable(); });
+  }
+
+  function onDay(item) { return !state.day || item.weekday_name === state.day; }
+
+  function draw() {
+    layer.clearLayers();
+    var bounds = [];
+    venues.forEach(function(v) {
+      var mics = state.type === "shows" ? [] : (v.mics || []).filter(onDay);
+      var shows = state.type === "mics" ? [] : (v.shows || []).filter(onDay);
+      if (!mics.length && !shows.length) return;
+      var marker = L.circleMarker([v.lat, v.lng], {
+        radius: mics.length + shows.length > 1 ? 9 : 7,
+        color: shows.length && mics.length ? COLORS.mic : "#05070d",
+        weight: shows.length && mics.length ? 3 : 1,
+        fillColor: pinColor(mics, shows),
+        fillOpacity: 0.9,
+      }).bindTooltip(tooltipHtml(v, mics, shows), { direction: "top" }).addTo(layer);
+      if (mics.length && shows.length) {
+        marker.bindPopup(chooserHtml(v, mics, shows));
+      } else {
+        var dest = mics.length ? micLink(mics[0]) : showLink(shows[0]);
+        marker.on("click", function() { window.location.href = dest; });
+      }
+      bounds.push([v.lat, v.lng]);
+    });
+    if (bounds.length) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 });
+  }
+
+  function buttonRow(id, options, onPick) {
+    var row = document.getElementById(id);
+    options.forEach(function(opt, i) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = opt.label;
+      if (i === 0) btn.className = "active";
+      btn.addEventListener("click", function() {
+        row.querySelectorAll("button").forEach(function(b) { b.className = ""; });
+        btn.className = "active";
+        onPick(opt.value);
+        draw();
+      });
+      row.appendChild(btn);
+    });
+  }
+
+  buttonRow("map-types",
+    [{ label: "Mics + shows", value: "all" }, { label: "Open mics", value: "mics" }, { label: "Shows", value: "shows" }],
+    function(v) { state.type = v; });
+  buttonRow("openmic-map-days",
+    [{ label: "Any day", value: null }].concat(DAYS.map(function(d) { return { label: d, value: d }; })),
+    function(v) { state.day = v; });
+
+  draw();
+
+})();
+</script>
+:::
+
 ::: {.grid}
 
 ::: {.g-col-6}
